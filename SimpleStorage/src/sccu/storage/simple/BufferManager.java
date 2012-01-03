@@ -47,7 +47,7 @@ public class BufferManager {
 		file.read(buffer);
 	}
 
-	public void saveHeaderPage(byte[] bytes) {
-		
+	public void saveHeaderPage(byte[] bytes) throws IOException {
+		writePage(0, bytes);
 	}
 }

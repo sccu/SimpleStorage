@@ -38,7 +38,7 @@ public class BPlusTreeHeader {
 		BufferManager.getInstance().readPage(0);
 	}
 
-	public void save() {
+	public void save() throws IOException {
 		BufferManager.getInstance().saveHeaderPage(m_header.getBytes());
 	}
 
