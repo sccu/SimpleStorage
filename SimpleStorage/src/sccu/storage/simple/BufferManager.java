@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 public class BufferManager {
+	private final static BufferManager m_bufferManager = new BufferManager();
 	private RandomAccessFile file = null;
 	private int pageSize;
 	private int maxPageNumber;
@@ -25,5 +26,28 @@ public class BufferManager {
 	
 	public void close() throws IOException {
 		this.file.close();
+	}
+	
+	public static BufferManager getInstance() {
+		return m_bufferManager;
+	}
+
+	public void writePage(int pageNumber, byte[] bytes) throws IOException {
+		file.seek(pageNumber * pageSize);
+		file.write(bytes);
+	}
+
+	public int getPageSize() {
+		return pageSize;
+	}
+
+	public void readPage(int pageNumber) throws IOException {
+		byte[] buffer = new byte[this.pageSize];
+		file.seek(pageNumber * this.pageSize);
+		file.read(buffer);
+	}
+
+	public void saveHeaderPage(byte[] bytes) {
+		
 	}
 }
