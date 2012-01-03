@@ -1,14 +1,16 @@
 package sccu.storage.simple;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
-class BPlusTreePage {
+public class BPlusTreePage {
 
 	private int pageNumber;
 	private int nextPageNumber;
 	private int keyCount;
 
-	public BPlusTreePage(boolean leaf) {
+	public BPlusTreePage(boolean leaf) throws IOException {
 		this.pageNumber = newBPlusTreePageNumber();
 		if (leaf) {
 			this.nextPageNumber = 0;
@@ -20,8 +22,16 @@ class BPlusTreePage {
 		this.keyCount = 0;
 	}
 
-	private static int newBPlusTreePageNumber() {
-		return 0;
+	private static int newBPlusTreePageNumber() throws IOException {
+		return BufferManager.getInstance().newPageNumber();
+	}
+	
+	public void read(int pageNo) throws IOException {
+		byte[] buffer = BufferManager.getInstance().readPage(pageNo);
+		this.pageNumber = pageNo;
+		ByteBuffer bb = ByteBuffer.wrap(buffer);
+		bb.order(ByteOrder.BIG_ENDIAN);
+		this.nextPageNumber = bb.getInt();
 	}
 
 	public void write() throws IOException {

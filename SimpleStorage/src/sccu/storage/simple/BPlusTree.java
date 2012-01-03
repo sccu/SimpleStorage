@@ -19,4 +19,17 @@ public class BPlusTree {
 		BPlusTreeHeader.getInstance().save();
 		BufferManager.getInstance().close();
 	}
+	
+	public void push(int pageNumber, int index) {
+		BPlusTreeHeader.getInstance().push(new BPlusTreeHeader.StackItem(pageNumber, index));
+	}
+	
+	public BPlusTreeHeader.StackItem pop() {
+		return BPlusTreeHeader.getInstance().pop();
+	}
+	
+	public BPlusTreeHeader.StackItem peek() {
+		return BPlusTreeHeader.getInstance().peek();
+	}
+	
 }

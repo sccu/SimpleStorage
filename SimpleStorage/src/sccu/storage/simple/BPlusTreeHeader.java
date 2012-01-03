@@ -3,9 +3,15 @@ package sccu.storage.simple;
 import java.io.IOException;
 import java.util.Stack;
 
+import sccu.storage.simple.BPlusTreeHeader.StackItem;
+
 public class BPlusTreeHeader {
 
 	public static class StackItem {
+		public StackItem(int pageNumber, int index) {
+			this.pageNumber = pageNumber;
+			this.index = index;
+		}
 		int pageNumber;
 		int index;
 	}
@@ -46,4 +52,15 @@ public class BPlusTreeHeader {
 		return null;
 	}
 
+	public void push(StackItem stackItem) {
+		stack.push(stackItem);
+	}
+
+	public StackItem pop() {
+		return stack.pop();
+	}
+	
+	public StackItem peek() {
+		return stack.peek();
+	}
 }

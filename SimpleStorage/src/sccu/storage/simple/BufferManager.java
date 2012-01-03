@@ -41,13 +41,43 @@ public class BufferManager {
 		return pageSize;
 	}
 
-	public void readPage(int pageNumber) throws IOException {
+	public byte[] readPage(int pageNumber) throws IOException {
 		byte[] buffer = new byte[this.pageSize];
 		file.seek(pageNumber * this.pageSize);
 		file.read(buffer);
+		return buffer;
 	}
 
 	public void saveHeaderPage(byte[] bytes) throws IOException {
 		writePage(0, bytes);
 	}
+
+	public int newPageNumber() throws IOException {
+		int freePageNumber;
+		if (this.lastFreePageNumber == -1) {
+			this.maxPageNumber++;
+			freePageNumber = this.maxPageNumber;
+		}
+		else {
+			freePageNumber = this.lastFreePageNumber;
+			
+			this.file.seek(freePageNumber * this.pageSize);
+			int nextPageNumber = this.file.readInt();
+			if (nextPageNumber == -1) {
+				this.lastFreePageNumber = -1;
+			}
+			else {
+				this.lastFreePageNumber = nextPageNumber + 1;
+			}
+		}
+		
+		return freePageNumber;
+	}
+	
+	public void freePage(int pageNumber) throws IOException {
+		this.file.seek(pageNumber * this.pageSize);
+		this.file.writeInt(this.lastFreePageNumber);
+		this.lastFreePageNumber = pageNumber;
+	}
+	
 }
