@@ -32,4 +32,9 @@ public class BPlusTree {
 		return BPlusTreeHeader.getInstance().peek();
 	}
 	
+	public void freePage(BPlusTreePage page) throws IOException {
+		BPlusTreeHeader.getInstance().freePage(page);
+		BufferManager.getInstance().freePage(page.getPageNumber());
+	}
+	
 }

@@ -9,9 +9,10 @@ public class BPlusTreePage {
 	private int pageNumber;
 	private int nextPageNumber;
 	private int keyCount;
+	private int[] data = new int[0];
 
 	public BPlusTreePage(boolean leaf) throws IOException {
-		this.pageNumber = newBPlusTreePageNumber();
+		this.pageNumber = newPageNumber();
 		if (leaf) {
 			this.nextPageNumber = 0;
 		}
@@ -22,7 +23,7 @@ public class BPlusTreePage {
 		this.keyCount = 0;
 	}
 
-	private static int newBPlusTreePageNumber() throws IOException {
+	private static int newPageNumber() throws IOException {
 		return BufferManager.getInstance().newPageNumber();
 	}
 	
@@ -44,6 +45,36 @@ public class BPlusTreePage {
 
 	public int getPageNumber() {
 		return pageNumber;
+	}
+
+	public int getNextPageNumber() {
+		return this.nextPageNumber;
+	}
+	
+	public void addKey(int key, int rightPageNumber, int index) {
+		for (int i = this.keyCount; i > index; i--) {
+			setKey(i, getKey(i-1));
+			setChild(i+1, getChild(i));
+		}
+		setKey(index, key);
+		setChild(index+1, rightPageNumber);
+		this.keyCount++;
+	}
+
+	private void setChild(int i, int child) {
+		data[i*2] = child;
+	}
+
+	private int getChild(int i) {
+		return data[i*2];
+	}
+
+	private void setKey(int i, int key) {
+		data[i*2+1] = key;
+	}
+
+	private int getKey(int i) {
+		return data[i*2+1];
 	}
 
 }

@@ -3,8 +3,6 @@ package sccu.storage.simple;
 import java.io.IOException;
 import java.util.Stack;
 
-import sccu.storage.simple.BPlusTreeHeader.StackItem;
-
 public class BPlusTreeHeader {
 
 	public static class StackItem {
@@ -62,5 +60,11 @@ public class BPlusTreeHeader {
 	
 	public StackItem peek() {
 		return stack.peek();
+	}
+
+	public void freePage(BPlusTreePage page) {
+		if (page.getPageNumber() == this.firstSequence) {
+			this.firstSequence = page.getNextPageNumber();
+		}
 	}
 }
