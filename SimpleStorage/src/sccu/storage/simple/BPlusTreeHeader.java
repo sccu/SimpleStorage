@@ -67,4 +67,12 @@ public class BPlusTreeHeader {
 			this.firstSequence = page.getNextPageNumber();
 		}
 	}
+
+	public int getMaxRecord() {
+		return this.maxRecord;
+	}
+
+	public int getOrder() {
+		return this.order;
+	}
 }

@@ -88,4 +88,51 @@ public class BPlusTreePage {
 	private BPlusTreeRecord getRecord(int i) {
 		return null;
 	}
+	
+	public void removeRecord(int index) {
+		for (int i = index; i < this.keyCount-1; i++) {
+			this.getRecord(i).copy(this.getRecord(i+1));
+		}
+		this.keyCount--;
+	}
+	
+	public void removeKey(int index) {
+		for (int i = index; i < this.keyCount-1; i++) {
+			this.setKey(i, this.getKey(i+1));
+			this.setChild(i+1, this.getChild(i+2));
+		}
+		this.keyCount--;
+	}
+
+	boolean isFull() {
+		if (this.isLeaf()) {
+			return this.keyCount == BPlusTreeHeader.getInstance().getMaxRecord();
+		}
+		else {
+			return this.keyCount == BPlusTreeHeader.getInstance().getOrder()-1;
+		}
+	}
+
+	private boolean isLeaf() {
+		return this.nextPageNumber != -1;
+	}
+	
+	public void copyNode(BPlusTreePage targetPage, int from, int count) {
+		targetPage.keyCount = 0;
+		
+		if (this.isLeaf()) {
+			for (int i = 0; i < count; i++) {
+				targetPage.getRecord(i).copy(this.getRecord(i+from));
+				targetPage.keyCount++;
+			}
+		}
+		else {
+			for (int i = 0; i < count; i++) {
+				targetPage.setChild(i, this.getChild(i+from));
+				targetPage.setKey(i, this.getKey(i+from));
+				targetPage.keyCount++;
+			}
+			targetPage.setChild(count, this.getChild(count+from));
+		}
+	}
 }
