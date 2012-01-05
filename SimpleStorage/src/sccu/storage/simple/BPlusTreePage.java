@@ -77,4 +77,15 @@ public class BPlusTreePage {
 		return data[i*2+1];
 	}
 
+	public void addRecord(BPlusTreeRecord record, int index) {
+		for (int i = this.keyCount; i > index; i--) {
+			((BPlusTreeRecord) this.getRecord(i)).copy(this.getRecord(i-1));
+		}
+		this.getRecord(index).copy(record);
+		this.keyCount++;
+	}
+
+	private BPlusTreeRecord getRecord(int i) {
+		return null;
+	}
 }

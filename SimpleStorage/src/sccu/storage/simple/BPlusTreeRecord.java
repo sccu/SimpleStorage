@@ -18,4 +18,12 @@ public class BPlusTreeRecord {
 		return Key.getSize() + Value.getSize();
 	}
 
+	private int key;
+	private String value;
+
+	public void copy(BPlusTreeRecord record) {
+		this.key = record.key;
+		this.value = record.value;
+	}
+
 }
