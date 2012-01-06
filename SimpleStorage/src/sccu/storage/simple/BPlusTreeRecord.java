@@ -4,6 +4,10 @@ public class BPlusTreeRecord {
 
 	public static class Key {
 		private int key;
+		public Key(int k) {
+			this.key = k;
+		}
+
 		public static int getSize() {
 			return 4;
 		}

@@ -59,7 +59,7 @@ public class BPlusTreePage {
 		return this.nextPageNumber;
 	}
 	
-	public void addKey(int key, int rightPageNumber, int index) {
+	public void addKey(Key key, int rightPageNumber, int index) {
 		for (int i = this.keyCount; i > index; i--) {
 			setKey(i, getKey(i-1));
 			setChild(i+1, getChild(i));
@@ -73,16 +73,16 @@ public class BPlusTreePage {
 		data[i*2] = child;
 	}
 
-	private int getChild(int i) {
+	int getChild(int i) {
 		return data[i*2];
 	}
 
-	private void setKey(int i, int key) {
-		data[i*2+1] = key;
+	private void setKey(int i, Key key) {
+		data[i*2+1] = key.getInt();
 	}
 
-	private int getKey(int i) {
-		return data[i*2+1];
+	private Key getKey(int i) {
+		return new Key(data[i*2+1]);
 	}
 
 	public void addRecord(BPlusTreeRecord record, int index) {
@@ -148,16 +148,52 @@ public class BPlusTreePage {
 		this.setChild(target+1, this.getChild(source+1));
 	}
 
-	public Key splitLeaf(BPlusTreeRecord record, int index) {
-		return null;
+	public Key splitLeaf(BPlusTreeRecord record, int index) throws IOException {
+		BPlusTreePage tempPage = new BPlusTreePage(-2, true);
+		this.copyNode(tempPage, 0, this.keyCount);
+		tempPage.addRecord(record, index);
+		
+		//int midIndex = tempPage.keyCount/2 - 1 + tempPage.keyCount%2;
+		int midIndex = (tempPage.keyCount-1) / 2;
+		Key midKey = tempPage.getRecord(midIndex).getKey();
+		
+		BPlusTreePage newPage = new BPlusTreePage(true);
+		newPage.nextPageNumber = this.nextPageNumber;
+		this.nextPageNumber = newPage.pageNumber;
+		
+		tempPage.copyNode(this, 0, midIndex+1);
+		this.writeBTreePage();
+		
+		tempPage.copyNode(newPage, midIndex+1, tempPage.keyCount-midIndex-1);
+		newPage.writeBTreePage();
+		
+		return midKey;
 	}
 
-	public Key splitNode(Key key, int rightPageNumber, int index) {
+	public Key splitNode(Key key, int rightPageNumber, int index) throws IOException {
 		BPlusTreePage tempPage = new BPlusTreePage(-2, false);
 		this.copyNode(tempPage, 0, this.keyCount);
-		tempPage.addKey(key.getInt(), rightPageNumber, index);
+		tempPage.addKey(key, rightPageNumber, index);
 		
-		return null;
+		int midIndex = tempPage.keyCount / 2;
+		Key midKey = tempPage.getKey(midIndex);
+		
+		tempPage.copyNode(this, 0, midIndex);
+		this.writeBTreePage();
+		
+		BPlusTreePage page = new BPlusTreePage(false);
+		tempPage.copyNode(page, midIndex+1, tempPage.keyCount-midIndex-1);
+		page.writeBTreePage();
+		
+		return midKey;
+	}
+
+	public int getKeyCount() {
+		return this.keyCount;
+	}
+
+	public void freeBTreePage() {
+		
 	}
 	
 }

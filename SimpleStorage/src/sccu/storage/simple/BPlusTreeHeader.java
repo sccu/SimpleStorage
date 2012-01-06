@@ -88,11 +88,11 @@ public class BPlusTreeHeader {
 	}
 
 	public boolean insertRecord(BPlusTreeRecord record) throws IOException {
-		if (findRecord(record.getKey())) {
+		BPlusTreePage page = new BPlusTreePage(0, true);
+		if (findRecord(record.getKey(), page)) {
 			return false;
 		}
 		
-		BPlusTreePage page = null;
 		int index = 0;
 		int leftPageNumber = 0;
 		int rightPageNumber = 0;
@@ -131,7 +131,7 @@ public class BPlusTreeHeader {
 					page.addRecord(record, index);
 				}
 				else {
-					page.addKey(key.getInt(), rightPageNumber, index);
+					page.addKey(key, rightPageNumber, index);
 				}
 				finished = true;
 			}
@@ -142,7 +142,83 @@ public class BPlusTreeHeader {
 		return true;
 	}
 	
-	private boolean findRecord(Key key) {
+	boolean deleteRecord(Key key) throws IOException {
+		BPlusTreePage child = new BPlusTreePage(0, true);
+		BPlusTreePage sibling = new BPlusTreePage(0, true);
+		BPlusTreePage parent = new BPlusTreePage(0, true);
+		
+		if (!findRecord(key, child)) {
+			return false;
+		}
+		
+		StackItem item = null;
+		
+		boolean finished = false;
+		while (!finished) {
+			item = pop();
+			if (child.isLeaf()) {
+				child.removeRecord(item.index);
+			}
+			else {
+				child.removeKey(item.index);
+			}
+			
+			if (item.pageNumber == this.rootPageNumber) {
+				if (child.getKeyCount() == 0 && !child.isLeaf()) {
+					this.rootPageNumber = child.getChild(0);
+					child.freeBTreePage();
+					return true;
+				}
+				finished = true;
+			}
+			else if (child.getKeyCount() < this.getMin(child)) {
+				item = peek();
+				int i = this.selectSibling(sibling, parent, item);
+				if (i == -1) {
+					// merge
+					if (child.isLeaf()) {
+						
+					}
+					else {
+						
+					}
+					
+				}
+				else {
+					// redistribute
+					if (child.isLeaf()) {
+						
+					}
+					else {
+						
+					}
+				}
+				
+				BPlusTreePage temp = child;
+				child = parent;
+				parent = temp;
+			}
+			else {
+				finished = true;
+			}
+			
+		}
+		
+		child.writeBTreePage();
+		return true;
+	}
+	
+	private int selectSibling(BPlusTreePage sibling, BPlusTreePage parent,
+			StackItem item) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	private int getMin(BPlusTreePage page) {
+		return page.isLeaf() ? this.minRecord : this.minKey;
+	}
+
+	private boolean findRecord(Key key, BPlusTreePage page) {
 		return false;
 	}
 	
