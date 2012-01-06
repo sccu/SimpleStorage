@@ -3,6 +3,7 @@ package sccu.storage.simple;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
 
 public class BufferManager {
 	private final static BufferManager m_bufferManager = new BufferManager();
@@ -11,7 +12,7 @@ public class BufferManager {
 	private int maxPageNumber;
 	private int lastFreePageNumber;
 	
-	public void init(String filename, int pageSize) throws IOException {
+	public void initBufferManager(String filename, int pageSize) throws IOException {
 		File file = new File("filename", "rb+");
 		if (!file.exists()) {
 			file.createNewFile();
@@ -39,6 +40,14 @@ public class BufferManager {
 
 	public int getPageSize() {
 		return pageSize;
+	}
+
+	public int getMaxPageNumber() {
+		return maxPageNumber;
+	}
+
+	public int getLastFreePageNumber() {
+		return lastFreePageNumber;
 	}
 
 	public byte[] readPage(int pageNumber) throws IOException {
@@ -78,6 +87,15 @@ public class BufferManager {
 		this.file.seek(pageNumber * this.pageSize);
 		this.file.writeInt(this.lastFreePageNumber);
 		this.lastFreePageNumber = pageNumber;
+	}
+
+	public void loadHeaderPage() throws IOException {
+		byte[] buffer = this.readPage(0);
+		ByteBuffer bb = ByteBuffer.wrap(buffer);
+		this.pageSize = bb.getInt();
+		this.maxPageNumber = bb.getInt();
+		this.lastFreePageNumber = bb.getInt();
+		BPlusTreeHeader.getInstance().init(bb.getInt(), bb.getInt());
 	}
 	
 }

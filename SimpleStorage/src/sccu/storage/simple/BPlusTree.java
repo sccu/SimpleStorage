@@ -3,20 +3,20 @@ package sccu.storage.simple;
 import java.io.IOException;
 
 public class BPlusTree {
-	public void init(String filename, int pageSize, boolean newStart) throws IOException {
-		BufferManager.getInstance().init(filename, pageSize);
+	public void initBTree(String filename, int pageSize, boolean newStart) throws IOException {
+		BufferManager.getInstance().initBufferManager(filename, pageSize);
 		if (newStart) {
 			BPlusTreePage page = new BPlusTreePage(true);
-			page.write();
+			page.writeBTreePage();
 			BPlusTreeHeader.getInstance().init(page.getPageNumber(), page.getPageNumber());
 		}
 		else {
-			BPlusTreeHeader.getInstance().loadPage();
+			BPlusTreeHeader.getInstance().loadBTreeHeaderPage();
 		}
 	}
 	
-	public void close() throws IOException {
-		BPlusTreeHeader.getInstance().save();
+	public void closeBTree() throws IOException {
+		BPlusTreeHeader.getInstance().saveBTreeHeaderPage();
 		BufferManager.getInstance().close();
 	}
 	
@@ -37,4 +37,8 @@ public class BPlusTree {
 		BufferManager.getInstance().freePage(page.getPageNumber());
 	}
 	
+	public boolean insertRecord(BPlusTreeRecord record) throws IOException {
+		return BPlusTreeHeader.getInstance().insertRecord(record);
+	}
+
 }

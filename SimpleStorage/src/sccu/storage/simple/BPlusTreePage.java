@@ -2,7 +2,8 @@ package sccu.storage.simple;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+
+import sccu.storage.simple.BPlusTreeRecord.Key;
 
 public class BPlusTreePage {
 
@@ -23,19 +24,26 @@ public class BPlusTreePage {
 		this.keyCount = 0;
 	}
 
+	public BPlusTreePage(int pageNumber, boolean leaf) {
+		this.pageNumber = pageNumber;
+	}
+
+	public BPlusTreePage() {
+		// TODO Auto-generated constructor stub
+	}
+
 	private static int newPageNumber() throws IOException {
 		return BufferManager.getInstance().newPageNumber();
 	}
 	
-	public void read(int pageNo) throws IOException {
+	public void readBTreePage(int pageNo) throws IOException {
 		byte[] buffer = BufferManager.getInstance().readPage(pageNo);
 		this.pageNumber = pageNo;
 		ByteBuffer bb = ByteBuffer.wrap(buffer);
-		bb.order(ByteOrder.BIG_ENDIAN);
 		this.nextPageNumber = bb.getInt();
 	}
 
-	public void write() throws IOException {
+	public void writeBTreePage() throws IOException {
 		BufferManager.getInstance().writePage(pageNumber, this.toBytes());
 	}
 
@@ -61,7 +69,7 @@ public class BPlusTreePage {
 		this.keyCount++;
 	}
 
-	private void setChild(int i, int child) {
+	void setChild(int i, int child) {
 		data[i*2] = child;
 	}
 
@@ -79,9 +87,9 @@ public class BPlusTreePage {
 
 	public void addRecord(BPlusTreeRecord record, int index) {
 		for (int i = this.keyCount; i > index; i--) {
-			((BPlusTreeRecord) this.getRecord(i)).copy(this.getRecord(i-1));
+			((BPlusTreeRecord) this.getRecord(i)).copyFrom(this.getRecord(i-1));
 		}
-		this.getRecord(index).copy(record);
+		this.getRecord(index).copyFrom(record);
 		this.keyCount++;
 	}
 
@@ -91,7 +99,7 @@ public class BPlusTreePage {
 	
 	public void removeRecord(int index) {
 		for (int i = index; i < this.keyCount-1; i++) {
-			this.getRecord(i).copy(this.getRecord(i+1));
+			this.getRecord(i).copyFrom(this.getRecord(i+1));
 		}
 		this.keyCount--;
 	}
@@ -113,16 +121,15 @@ public class BPlusTreePage {
 		}
 	}
 
-	private boolean isLeaf() {
+	boolean isLeaf() {
 		return this.nextPageNumber != -1;
 	}
 	
 	public void copyNode(BPlusTreePage targetPage, int from, int count) {
 		targetPage.keyCount = 0;
-		
 		if (this.isLeaf()) {
 			for (int i = 0; i < count; i++) {
-				targetPage.getRecord(i).copy(this.getRecord(i+from));
+				targetPage.getRecord(i).copyFrom(this.getRecord(i+from));
 				targetPage.keyCount++;
 			}
 		}
@@ -135,4 +142,22 @@ public class BPlusTreePage {
 			targetPage.setChild(count, this.getChild(count+from));
 		}
 	}
+	
+	public void copyKey(int source, int target) {
+		this.setKey(target, this.getKey(source));
+		this.setChild(target+1, this.getChild(source+1));
+	}
+
+	public Key splitLeaf(BPlusTreeRecord record, int index) {
+		return null;
+	}
+
+	public Key splitNode(Key key, int rightPageNumber, int index) {
+		BPlusTreePage tempPage = new BPlusTreePage(-2, false);
+		this.copyNode(tempPage, 0, this.keyCount);
+		tempPage.addKey(key.getInt(), rightPageNumber, index);
+		
+		return null;
+	}
+	
 }

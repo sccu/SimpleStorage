@@ -3,8 +3,13 @@ package sccu.storage.simple;
 public class BPlusTreeRecord {
 
 	public static class Key {
+		private int key;
 		public static int getSize() {
 			return 4;
+		}
+
+		public int getInt() {
+			return key;
 		}
 	}
 
@@ -18,12 +23,17 @@ public class BPlusTreeRecord {
 		return Key.getSize() + Value.getSize();
 	}
 
-	private int key;
+	private Key key;
 	private String value;
 
-	public void copy(BPlusTreeRecord record) {
+	public void copyFrom(BPlusTreeRecord record) {
 		this.key = record.key;
 		this.value = record.value;
+	}
+
+	public Key getKey() {
+		// TODO Auto-generated method stub
+		return key;
 	}
 
 }
