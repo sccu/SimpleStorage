@@ -177,21 +177,21 @@ public class BPlusTreeHeader {
 				if (i == -1) {
 					// merge
 					if (child.isLeaf()) {
-						
+						child.mergeLeaf(sibling, parent, item);
 					}
 					else {
-						
+						child.mergeNode(sibling, parent, item);
 					}
-					
 				}
 				else {
 					// redistribute
 					if (child.isLeaf()) {
-						
+						child.redistributeLeaf(sibling, parent, i);
 					}
 					else {
-						
+						child.redistributeLeaf(sibling, parent, i);
 					}
+					finished = true;
 				}
 				
 				BPlusTreePage temp = child;

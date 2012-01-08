@@ -36,8 +36,12 @@ public class BPlusTreeRecord {
 	}
 
 	public Key getKey() {
-		// TODO Auto-generated method stub
 		return key;
 	}
 
+	BPlusTreeRecord deepCopy() {
+		BPlusTreeRecord newRecord = new BPlusTreeRecord();
+		newRecord.copyFrom(this);
+		return newRecord;
+	}
 }
