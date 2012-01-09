@@ -189,7 +189,7 @@ public class BPlusTreeHeader {
 						child.redistributeLeaf(sibling, parent, i);
 					}
 					else {
-						child.redistributeLeaf(sibling, parent, i);
+						child.redistributeNode(sibling, parent, i);
 					}
 					finished = true;
 				}

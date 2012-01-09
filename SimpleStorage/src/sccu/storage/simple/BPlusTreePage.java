@@ -14,7 +14,7 @@ public class BPlusTreePage {
 	private int nextPageNumber;
 	private int keyCount;
 	private int[] data = new int[0];
-	private List<BPlusTreeRecord> records = new ArrayList<BPlusTreeRecord>();
+	private ArrayList<BPlusTreeRecord> records = new ArrayList<BPlusTreeRecord>();
 
 	public BPlusTreePage(boolean leaf) throws IOException {
 		this.pageNumber = newPageNumber();
@@ -26,14 +26,16 @@ public class BPlusTreePage {
 		}
 		
 		this.keyCount = 0;
+		this.data = new int[(BufferManager.getInstance().getPageSize()-4*4)/8+1];
 	}
 
 	public BPlusTreePage(int pageNumber, boolean leaf) {
 		this.pageNumber = pageNumber;
+		this.data = new int[(BufferManager.getInstance().getPageSize()-4*4)/8+1];
 	}
 
 	public BPlusTreePage() {
-		// TODO Auto-generated constructor stub
+		this.data = new int[(BufferManager.getInstance().getPageSize()-4*4)/8+1];
 	}
 
 	private static int newPageNumber() throws IOException {
@@ -251,15 +253,97 @@ public class BPlusTreePage {
 	}
 	
 	public void redistributeLeaf(BPlusTreePage sibling,
-			BPlusTreePage parent, int i) {
+			BPlusTreePage parent, int index) throws IOException {
 		BPlusTreePage child = this;
 		
 		int moveCount = (sibling.getKeyCount() - child.getKeyCount()) / 2;
 		
-		if (child.getRecord(0).getKey().getInt() < sibling.getRecord(0).getKey().getInt()) {
+		if (child.getRecord(0).getKey().lessThan(sibling.getRecord(0).getKey())) {
+			for (int i = 0; i < moveCount; i++) {
+				child.appendRecord(sibling.getRecord(i));
+			}
+			sibling.keyCount -= moveCount;
 			
+			for (int i = 0; i < sibling.getKeyCount(); i++) {
+				sibling.copyRecord(i, sibling.getRecord(i));
+			}
+			// ??? 왜 sibling의 레코드를 parent에 복사하는지? 크기확인은 안해도 되는지?
+			parent.setKey(sibling.getKeyCount(), child.getRecord(child.getKeyCount()-1).getKey());
+		}
+		else {
+			List<BPlusTreeRecord> records = sibling.removeRecords(0, sibling.getKeyCount());
+			child.insertRecords(0, records);
+			
+			parent.setKey(index, sibling.getRecord(sibling.getKeyCount()-1).getKey());
 		}
 		
+		child.writeBTreePage();
+		sibling.writeBTreePage();
+	}
+
+	private void insertRecords(int index, List<BPlusTreeRecord> records) {
+		this.records.addAll(index, records);
+		this.keyCount = this.records.size();
+	}
+
+	private List<BPlusTreeRecord> removeRecords(int fromIndex, int toIndex) {
+		List<BPlusTreeRecord> results = this.records.subList(fromIndex, toIndex);
+		
+		ArrayList<BPlusTreeRecord> newRecords = new ArrayList<BPlusTreeRecord>();
+		newRecords.addAll(this.records.subList(0, fromIndex));
+		newRecords.addAll(this.records.subList(toIndex, this.records.size()));
+		this.records = newRecords;
+		this.keyCount = this.records.size();
+		
+		return results;
+	}
+
+	private void copyRecord(int i, BPlusTreeRecord record) {
+		this.getRecord(i).copyFrom(record);
+	}
+
+	public void redistributeNode(BPlusTreePage sibling, BPlusTreePage parent,
+			int index) throws IOException {
+		BPlusTreePage child = this;
+		
+		int moveCount = (sibling.getKeyCount() - child.getKeyCount()) / 2;
+		if (child.getKey(0).lessThan(sibling.getKey(0))) {
+			child.setKey(child.getKeyCount(), parent.getKey(index));
+			child.setChild(child.getKeyCount()+1, sibling.getChild(0));
+			for (int i = 0; i < moveCount-1; i++) {
+				child.setKey(child.getKeyCount()+i+1, sibling.getKey(i));
+				child.setChild(child.getKeyCount()+i+2, sibling.getChild(i+1));
+			}
+			child.keyCount += moveCount;
+			parent.setKey(index, sibling.getKey(moveCount-1));
+			sibling.keyCount -= moveCount;
+			
+			sibling.setChild(0, sibling.getChild(moveCount));
+			for (int i = 0; i < sibling.getKeyCount(); i++) {
+				sibling.setKey(i, sibling.getKey(moveCount+i));
+				sibling.setChild(i+1, sibling.getChild(moveCount+i+1));
+			}
+		}
+		else {
+			for (int i = child.getKeyCount(); i > 0; i--) {
+				child.setKey(moveCount+i-1, child.getKey(i-1));
+				child.setChild(moveCount+i, child.getChild(i));
+			}
+			child.setChild(moveCount, child.getChild(0));
+			child.keyCount += moveCount;
+			
+			sibling.keyCount -= moveCount;
+			child.setKey(moveCount-1, parent.getKey(index));
+			for (int i = 0; i < moveCount-1; i++) {
+				child.setKey(i, sibling.getKey(sibling.getKeyCount()+i+1));
+				child.setChild(i+1, sibling.getChild(sibling.getKeyCount()+i+2));
+			}
+			child.setChild(0, sibling.getChild(sibling.getKeyCount()+1));
+			parent.setKey(index, sibling.getKey(sibling.getKeyCount()));
+		}
+		
+		child.writeBTreePage();
+		sibling.writeBTreePage();
 	}
 
 }

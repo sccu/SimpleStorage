@@ -1,5 +1,6 @@
 package sccu.storage.simple;
 
+
 public class BPlusTreeRecord {
 
 	public static class Key {
@@ -14,6 +15,10 @@ public class BPlusTreeRecord {
 
 		public int getInt() {
 			return key;
+		}
+
+		public boolean lessThan(Key rhs) {
+			return this.key < rhs.key;
 		}
 	}
 
