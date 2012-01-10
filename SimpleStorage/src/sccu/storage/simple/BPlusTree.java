@@ -2,6 +2,8 @@ package sccu.storage.simple;
 
 import java.io.IOException;
 
+import sccu.storage.simple.BPlusTreeRecord.Key;
+
 public class BPlusTree {
 	public void initBTree(String filename, int pageSize, boolean newStart) throws IOException {
 		BufferManager.getInstance().initBufferManager(filename, pageSize);
@@ -20,18 +22,6 @@ public class BPlusTree {
 		BufferManager.getInstance().close();
 	}
 	
-	public void push(int pageNumber, int index) {
-		BPlusTreeHeader.getInstance().push(new BPlusTreeHeader.StackItem(pageNumber, index));
-	}
-	
-	public BPlusTreeHeader.StackItem pop() {
-		return BPlusTreeHeader.getInstance().pop();
-	}
-	
-	public BPlusTreeHeader.StackItem peek() {
-		return BPlusTreeHeader.getInstance().peek();
-	}
-	
 	public void freePage(BPlusTreePage page) throws IOException {
 		BPlusTreeHeader.getInstance().freePage(page);
 		BufferManager.getInstance().freePage(page.getPageNumber());
@@ -39,6 +29,20 @@ public class BPlusTree {
 	
 	public boolean insertRecord(BPlusTreeRecord record) throws IOException {
 		return BPlusTreeHeader.getInstance().insertRecord(record);
+	}
+	
+	public boolean deleteRecord(Key key) throws IOException {
+		return BPlusTreeHeader.getInstance().deleteRecord(key);
+	}
+
+	public boolean retrieveRecord(Key key, BPlusTreeRecord record) throws IOException {
+		BPlusTreePage page = new BPlusTreePage();
+		boolean found = BPlusTreeHeader.getInstance().findRecord(key, page);
+		if (found) {
+			int i = BPlusTreeHeader.getInstance().peek().index;
+			record.copyFrom(page.getRecord(i));
+		}
+		return found;
 	}
 
 }

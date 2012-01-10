@@ -209,17 +209,61 @@ public class BPlusTreeHeader {
 	}
 	
 	private int selectSibling(BPlusTreePage sibling, BPlusTreePage parent,
-			StackItem item) {
-		// TODO Auto-generated method stub
-		return 0;
+			StackItem item) throws IOException {
+		int i = -1;
+		parent.readBTreePage(item.pageNumber);
+		if (item.index == 0) {
+			sibling.readBTreePage(parent.getChild(1));
+			if (sibling.getKeyCount() > BPlusTreeHeader.getInstance().getMin(sibling)) {
+				i = item.index;
+			}
+		}
+		else if (item.index == parent.getKeyCount()) {
+			sibling.readBTreePage(parent.getChild(item.index-1));
+			if (sibling.getKeyCount() > BPlusTreeHeader.getInstance().getMin(sibling)) {
+				i = item.index - 1;
+			}
+		}
+		else {
+			sibling.readBTreePage(parent.getChild(item.index+1));
+			if (sibling.getKeyCount() > BPlusTreeHeader.getInstance().getMin(sibling)) {
+				i = item.index;
+			}
+			else {
+				sibling.readBTreePage(parent.getChild(item.index-1));
+				if (sibling.getKeyCount() > BPlusTreeHeader.getInstance().getMin(sibling)) {
+					i = item.index - 1;
+				}
+			}
+		}
+		
+		return i;
 	}
-
+	
 	private int getMin(BPlusTreePage page) {
 		return page.isLeaf() ? this.minRecord : this.minKey;
 	}
 
-	private boolean findRecord(Key key, BPlusTreePage page) {
-		return false;
+	boolean findRecord(Key key, BPlusTreePage page) throws IOException {
+		int currentPageNumber = this.rootPageNumber;
+		this.stack.clear();
+		page.readBTreePage(currentPageNumber);
+		int i;
+		while (!page.isLeaf()) {
+			for (i = 0; i < page.getKeyCount() && page.getKey(i).lessThan(key); i++) {
+				;
+			}
+			this.push(new StackItem(page.getPageNumber(), i));
+			currentPageNumber = page.getChild(i);
+			page.readBTreePage(currentPageNumber);
+		}
+		
+		for (i = 0; i < page.getKeyCount() && page.getKey(i).lessThan(key); i++) {
+			;
+		}
+		this.push(new StackItem(page.getPageNumber(), i));
+		
+		return ((i < page.getKeyCount()) && key.equals(page.getRecord(i).getKey()));
 	}
 	
 }

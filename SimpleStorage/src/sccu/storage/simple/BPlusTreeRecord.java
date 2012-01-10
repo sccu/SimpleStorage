@@ -16,6 +16,14 @@ public class BPlusTreeRecord {
 		public int getInt() {
 			return key;
 		}
+		
+		@Override
+		public boolean equals(Object other) {
+			if (this == other) {
+				return true;
+			}
+			return other instanceof Key && this.key == ((Key)other).key;
+		}
 
 		public boolean lessThan(Key rhs) {
 			return this.key < rhs.key;
@@ -26,6 +34,14 @@ public class BPlusTreeRecord {
 		public static int getSize() {
 			return 12;
 		}
+	}
+
+	public BPlusTreeRecord() {
+	}
+	
+	public BPlusTreeRecord(int key, String value) {
+		this.key.key = key;
+		this.value = value;
 	}
 
 	public static int getSize() {

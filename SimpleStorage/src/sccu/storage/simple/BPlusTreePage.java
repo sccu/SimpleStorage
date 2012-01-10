@@ -47,6 +47,19 @@ public class BPlusTreePage {
 		this.pageNumber = pageNo;
 		ByteBuffer bb = ByteBuffer.wrap(buffer);
 		this.nextPageNumber = bb.getInt();
+		this.keyCount = bb.getInt();
+		if (this.isLeaf()) {
+			// TODO: array를 통째로 복사.
+			this.data = new int[this.keyCount*2+1];
+			this.setChild(0, bb.getInt());
+			for (int i = 0; i < this.keyCount; i++) {
+				this.setKey(i, new Key(bb.getInt()));
+				this.setChild(i+1, bb.getInt());
+			}
+		}
+		else {
+			
+		}
 	}
 
 	public void writeBTreePage() throws IOException {
@@ -99,8 +112,8 @@ public class BPlusTreePage {
 		this.keyCount++;
 	}
 
-	private BPlusTreeRecord getRecord(int i) {
-		return null;
+	BPlusTreeRecord getRecord(int index) {
+		return this.records.get(index);
 	}
 	
 	public void removeRecord(int index) {
