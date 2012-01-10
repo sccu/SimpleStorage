@@ -13,12 +13,12 @@ public class BufferManager {
 	private int lastFreePageNumber;
 	
 	public void initBufferManager(String filename, int pageSize) throws IOException {
-		File file = new File("filename", "rb+");
+		File file = new File(filename);
 		if (!file.exists()) {
 			file.createNewFile();
 		}
 		
-		this.file = new RandomAccessFile(file, "rb+");
+		this.file = new RandomAccessFile(file, "rw");
 		
 		this.pageSize = pageSize;
 		this.maxPageNumber = 0;
