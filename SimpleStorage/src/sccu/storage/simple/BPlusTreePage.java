@@ -3,6 +3,7 @@ package sccu.storage.simple;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import sccu.storage.simple.BPlusTreeHeader.StackItem;
@@ -43,22 +44,29 @@ public class BPlusTreePage {
 	}
 	
 	public void readBTreePage(int pageNo) throws IOException {
+		this.records.clear();
+		
 		byte[] buffer = BufferManager.getInstance().readPage(pageNo);
-		this.pageNumber = pageNo;
 		ByteBuffer bb = ByteBuffer.wrap(buffer);
+		this.pageNumber = pageNo;
 		this.nextPageNumber = bb.getInt();
 		this.keyCount = bb.getInt();
 		if (this.isLeaf()) {
-			// TODO: array를 통째로 복사.
+			for (int i = 0; i < this.keyCount; i++) {
+				int key = bb.getInt();
+				byte[] value = new byte[BPlusTreeRecord.Value.getSize()];
+				bb.get(value);
+				this.records.add(new BPlusTreeRecord(key, new String(value)));
+			}
+		}
+		else {
+			// TODO: array를 통째로 복사. serializable 구현
 			this.data = new int[this.keyCount*2+1];
 			this.setChild(0, bb.getInt());
 			for (int i = 0; i < this.keyCount; i++) {
 				this.setKey(i, new Key(bb.getInt()));
 				this.setChild(i+1, bb.getInt());
 			}
-		}
-		else {
-			
 		}
 	}
 
@@ -67,7 +75,29 @@ public class BPlusTreePage {
 	}
 
 	private byte[] toBytes() {
-		return null;
+		byte[] buffer = new byte[BufferManager.getInstance().getPageSize()];
+		ByteBuffer bb = ByteBuffer.wrap(buffer);
+		
+		bb.putInt(this.pageNumber);
+		bb.putInt(this.nextPageNumber);
+		bb.putInt(this.keyCount);
+		if (this.isLeaf()) {
+			for (int i = 0; i < this.keyCount; i++) {
+				bb.putInt(this.records.get(i).getKey().getInt());
+				byte[] value = Arrays.copyOf(this.records.get(i).getValue().getBytes(), BPlusTreeRecord.Value.getSize());
+				bb.put(value);
+			}
+		}
+		else {
+			// TODO: array를 통째로 복사. serializable 구현
+			bb.putInt(this.getChild(0));
+			for (int i = 0; i < this.keyCount; i++) {
+				bb.putInt(this.getKey(i).getInt());
+				bb.putInt(this.getChild(i+1));
+			}
+		}
+		
+		return buffer;
 	}
 
 	public int getPageNumber() {

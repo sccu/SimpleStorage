@@ -59,6 +59,10 @@ public class BPlusTreeRecord {
 	public Key getKey() {
 		return key;
 	}
+	
+	public String getValue() {
+		return value;
+	}
 
 	BPlusTreeRecord deepCopy() {
 		BPlusTreeRecord newRecord = new BPlusTreeRecord();
