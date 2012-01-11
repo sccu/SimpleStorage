@@ -23,7 +23,7 @@ public class BPlusTreeMain {
 		*/
 		
 		BPlusTree tree = new BPlusTree();
-		tree.initBTree("e:/temp/test.btree", 64, true);
+		tree.initBTree("./data/test.btree", 64, true);
 		
 		File commandFile = new File("./data/cmd.txt");
 		BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(commandFile)));

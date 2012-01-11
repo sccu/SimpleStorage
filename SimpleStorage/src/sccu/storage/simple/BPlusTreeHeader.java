@@ -100,7 +100,7 @@ public class BPlusTreeHeader {
 		
 		boolean finished = false;
 		while (!finished) {
-			if (stack.peek() == null) {
+			if (stack.empty()) {
 				// 새로운 루트 생성하면서 트리 높이가 1 증가
 				leftPageNumber = this.rootPageNumber;
 				page = new BPlusTreePage(false);
@@ -258,7 +258,7 @@ public class BPlusTreeHeader {
 			page.readBTreePage(currentPageNumber);
 		}
 		
-		for (i = 0; i < page.getKeyCount() && page.getKey(i).lessThan(key); i++) {
+		for (i = 0; i < page.getKeyCount() && page.getRecord(i).getKey().lessThan(key); i++) {
 			;
 		}
 		this.push(new StackItem(page.getPageNumber(), i));

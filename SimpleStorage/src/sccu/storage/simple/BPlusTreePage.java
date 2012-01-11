@@ -14,7 +14,7 @@ public class BPlusTreePage {
 	private int pageNumber;
 	private int nextPageNumber;
 	private int keyCount;
-	private int[] data = new int[0];
+	private int[] data = null;
 	private ArrayList<BPlusTreeRecord> records = new ArrayList<BPlusTreeRecord>();
 
 	public BPlusTreePage(boolean leaf) throws IOException {
@@ -27,7 +27,9 @@ public class BPlusTreePage {
 		}
 		
 		this.keyCount = 0;
-		this.data = new int[(BufferManager.getInstance().getPageSize()-4*4)/8+1];
+		if (!leaf) {
+			this.data = new int[(BufferManager.getInstance().getPageSize()-4*4)/8+1];
+		}
 	}
 
 	public BPlusTreePage(int pageNumber, boolean leaf) {
@@ -48,7 +50,7 @@ public class BPlusTreePage {
 		
 		byte[] buffer = BufferManager.getInstance().readPage(pageNo);
 		ByteBuffer bb = ByteBuffer.wrap(buffer);
-		this.pageNumber = pageNo;
+		this.pageNumber = bb.getInt();
 		this.nextPageNumber = bb.getInt();
 		this.keyCount = bb.getInt();
 		if (this.isLeaf()) {
@@ -131,18 +133,13 @@ public class BPlusTreePage {
 	}
 
 	Key getKey(int i) {
+		if (this.isLeaf()) {
+		}
 		return new Key(data[i*2+1]);
 	}
 
 	public void addRecord(BPlusTreeRecord record, int index) {
-		if (this.records.size() <= index) {
-			this.records.add(record.deepCopy());
-		}
-		
-		for (int i = this.keyCount; i > index; i--) {
-			((BPlusTreeRecord) this.getRecord(i)).copyFrom(this.getRecord(i-1));
-		}
-		this.getRecord(index).copyFrom(record);
+		this.records.add(index, record.deepCopy());
 		this.keyCount++;
 	}
 
@@ -182,7 +179,12 @@ public class BPlusTreePage {
 		targetPage.keyCount = 0;
 		if (this.isLeaf()) {
 			for (int i = 0; i < count; i++) {
-				targetPage.getRecord(i).copyFrom(this.getRecord(i+from));
+				if (i < targetPage.records.size()) {
+					targetPage.getRecord(i).copyFrom(this.getRecord(i+from));
+				}
+				else {
+					targetPage.records.add(this.getRecord(i+from).deepCopy());
+				}
 				targetPage.keyCount++;
 			}
 		}

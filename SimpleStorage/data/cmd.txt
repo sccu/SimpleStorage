@@ -1,12 +1,12 @@
 i 120 kim
 i 100 park
 i 200 lee
+i 150 yang
 r 120
 d 120
 i 120 choi
 i 120 lim
 i 120 jang
-i 150 yang
 r 120
 r 200
-r150
+r 150
