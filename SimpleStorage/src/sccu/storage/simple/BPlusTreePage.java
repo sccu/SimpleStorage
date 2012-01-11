@@ -34,11 +34,12 @@ public class BPlusTreePage {
 
 	public BPlusTreePage(int pageNumber, boolean leaf) {
 		this.pageNumber = pageNumber;
-		this.data = new int[(BufferManager.getInstance().getPageSize()-4*4)/8+1];
+		if (!leaf) {
+			this.data = new int[(BufferManager.getInstance().getPageSize()-4*4)/8+1];
+		}
 	}
 
 	public BPlusTreePage() {
-		this.data = new int[(BufferManager.getInstance().getPageSize()-4*4)/8+1];
 	}
 
 	private static int newPageNumber() throws IOException {

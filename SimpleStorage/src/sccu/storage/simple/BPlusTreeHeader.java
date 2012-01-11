@@ -57,10 +57,6 @@ public class BPlusTreeHeader {
 		BufferManager.getInstance().saveHeaderPage(buffer);
 	}
 
-	private byte[] getBytes() {
-		return null;
-	}
-
 	public void push(StackItem stackItem) {
 		stack.push(stackItem);
 	}
