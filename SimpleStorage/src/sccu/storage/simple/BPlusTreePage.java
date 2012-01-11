@@ -135,6 +135,10 @@ public class BPlusTreePage {
 	}
 
 	public void addRecord(BPlusTreeRecord record, int index) {
+		if (this.records.size() <= index) {
+			this.records.add(record.deepCopy());
+		}
+		
 		for (int i = this.keyCount; i > index; i--) {
 			((BPlusTreeRecord) this.getRecord(i)).copyFrom(this.getRecord(i-1));
 		}

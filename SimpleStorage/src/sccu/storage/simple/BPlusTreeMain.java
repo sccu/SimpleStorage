@@ -15,15 +15,17 @@ public class BPlusTreeMain {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
+		/*
 		if (args.length < 2) {
 			System.out.println("FILE open error");
 			System.exit(-1);
 		}
+		*/
 		
 		BPlusTree tree = new BPlusTree();
-		tree.initBTree("test.btree", 64, true);
+		tree.initBTree("e:/temp/test.btree", 64, true);
 		
-		File commandFile = new File("cmd.txt", "r");
+		File commandFile = new File("./data/cmd.txt");
 		BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(commandFile)));
 		String line;
 		while ((line = reader.readLine()) != null) {

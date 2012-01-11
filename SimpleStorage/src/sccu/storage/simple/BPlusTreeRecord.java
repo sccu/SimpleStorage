@@ -40,7 +40,7 @@ public class BPlusTreeRecord {
 	}
 	
 	public BPlusTreeRecord(int key, String value) {
-		this.key.key = key;
+		this.key = new Key(key);
 		this.value = value;
 	}
 

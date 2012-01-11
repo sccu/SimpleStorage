@@ -1,0 +1,7 @@
+i 120 kim
+i 200 choi
+d 120
+r 200
+i 120 jang
+i 150 yang
+r 120
