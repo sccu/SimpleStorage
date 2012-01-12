@@ -8,6 +8,8 @@ import sccu.storage.simple.BPlusTreeRecord.Key;
 
 public class BPlusTreeHeader {
 
+	private static final int HEADER_PAGE_NUMBER = 0;
+
 	public static class StackItem {
 		public StackItem(int pageNumber, int index) {
 			this.pageNumber = pageNumber;
@@ -91,7 +93,7 @@ public class BPlusTreeHeader {
 		
 		int index = 0;
 		int leftPageNumber = 0;
-		int rightPageNumber = 0;
+		BPlusTreePage rightPage = null;
 		Key key = record.getKey();
 		
 		boolean finished = false;
@@ -107,7 +109,7 @@ public class BPlusTreeHeader {
 			else {
 				BPlusTreeHeader.StackItem item = stack.pop();
 				index = item.index;
-				if (rightPageNumber != 0) {
+				if (rightPage != null && rightPage.getPageNumber() != HEADER_PAGE_NUMBER) {
 					page = new BPlusTreePage();
 					page.readBTreePage(item.pageNumber);
 				}
@@ -115,19 +117,21 @@ public class BPlusTreeHeader {
 			
 			if (page.isFull()) {
 				if (page.isLeaf()) {
-					key = page.splitLeaf(record, index);
+					rightPage = new BPlusTreePage(true);
+					key = page.splitLeaf(record, rightPage, index);
 				}
 				else {
-					key = page.splitNode(key, rightPageNumber, index);
+					int newChild = rightPage.getPageNumber();
+					rightPage = new BPlusTreePage(false);
+					key = page.splitNode(key, newChild, rightPage, index);
 				}
-				rightPageNumber = page.getPageNumber();
 			}
 			else {
 				if (page.isLeaf()) {
 					page.addRecord(record, index);
 				}
 				else {
-					page.addKey(key, rightPageNumber, index);
+					page.addKey(key, rightPage.getPageNumber(), index);
 				}
 				finished = true;
 			}

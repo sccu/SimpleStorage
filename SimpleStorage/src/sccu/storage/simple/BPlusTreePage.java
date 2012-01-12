@@ -199,7 +199,7 @@ public class BPlusTreePage {
 		}
 	}
 	
-	public Key splitLeaf(BPlusTreeRecord record, int index) throws IOException {
+	public Key splitLeaf(BPlusTreeRecord record, BPlusTreePage rightPage, int index) throws IOException {
 		BPlusTreePage tempPage = new BPlusTreePage(-2, true);
 		this.copyNode(tempPage, 0, this.keyCount);
 		tempPage.addRecord(record, index);
@@ -208,23 +208,22 @@ public class BPlusTreePage {
 		int midIndex = (tempPage.keyCount-1) / 2;
 		Key midKey = tempPage.getRecord(midIndex).getKey();
 		
-		BPlusTreePage newPage = new BPlusTreePage(true);
-		newPage.nextPageNumber = this.nextPageNumber;
-		this.nextPageNumber = newPage.pageNumber;
+		rightPage.nextPageNumber = this.nextPageNumber;
+		this.nextPageNumber = rightPage.pageNumber;
 		
 		tempPage.copyNode(this, 0, midIndex+1);
 		this.writeBTreePage();
 		
-		tempPage.copyNode(newPage, midIndex+1, tempPage.keyCount-midIndex-1);
-		newPage.writeBTreePage();
+		tempPage.copyNode(rightPage, midIndex+1, tempPage.keyCount-midIndex-1);
+		rightPage.writeBTreePage();
 		
 		return midKey;
 	}
 
-	public Key splitNode(Key key, int rightPageNumber, int index) throws IOException {
+	public Key splitNode(Key key, int newChild, BPlusTreePage rightPage, int index) throws IOException {
 		BPlusTreePage tempPage = new BPlusTreePage(-2, false);
 		this.copyNode(tempPage, 0, this.keyCount);
-		tempPage.addKey(key, rightPageNumber, index);
+		tempPage.addKey(key, newChild, index);
 		
 		int midIndex = tempPage.keyCount / 2;
 		Key midKey = tempPage.getKey(midIndex);
@@ -232,9 +231,8 @@ public class BPlusTreePage {
 		tempPage.copyNode(this, 0, midIndex);
 		this.writeBTreePage();
 		
-		BPlusTreePage page = new BPlusTreePage(false);
-		tempPage.copyNode(page, midIndex+1, tempPage.keyCount-midIndex-1);
-		page.writeBTreePage();
+		tempPage.copyNode(rightPage, midIndex+1, tempPage.keyCount-midIndex-1);
+		rightPage.writeBTreePage();
 		
 		return midKey;
 	}
