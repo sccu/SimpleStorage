@@ -22,11 +22,6 @@ public class BPlusTree {
 		BufferManager.getInstance().close();
 	}
 	
-	public void freePage(BPlusTreePage page) throws IOException {
-		BPlusTreeHeader.getInstance().freePage(page);
-		BufferManager.getInstance().freePage(page.getPageNumber());
-	}
-	
 	public boolean insertRecord(BPlusTreeRecord record) throws IOException {
 		return BPlusTreeHeader.getInstance().insertRecord(record);
 	}

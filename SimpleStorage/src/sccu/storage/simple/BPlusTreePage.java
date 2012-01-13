@@ -28,14 +28,22 @@ public class BPlusTreePage {
 		
 		this.keyCount = 0;
 		if (!leaf) {
-			this.data = new int[(BufferManager.getInstance().getPageSize()-4*4)/8+1];
+			this.data = new int[BufferManager.getInstance().getPageSize()/4];
 		}
 	}
 
 	public BPlusTreePage(int pageNumber, boolean leaf) {
 		this.pageNumber = pageNumber;
+		if (leaf) {
+			this.nextPageNumber = 0;
+		}
+		else {
+			this.nextPageNumber = -1;
+		}
+		
+		this.keyCount = 0;
 		if (!leaf) {
-			this.data = new int[(BufferManager.getInstance().getPageSize()-4*4)/8+1];
+			this.data = new int[BufferManager.getInstance().getPageSize()/4];
 		}
 	}
 
@@ -64,7 +72,7 @@ public class BPlusTreePage {
 		}
 		else {
 			// TODO: array를 통째로 복사. serializable 구현
-			this.data = new int[this.keyCount*2+1];
+			this.data = new int[BufferManager.getInstance().getPageSize()/4];
 			this.setChild(0, bb.getInt());
 			for (int i = 0; i < this.keyCount; i++) {
 				this.setKey(i, new Key(bb.getInt()));
@@ -74,6 +82,7 @@ public class BPlusTreePage {
 	}
 
 	public void writeBTreePage() throws IOException {
+		this.validate();
 		BufferManager.getInstance().writePage(pageNumber, this.toBytes());
 	}
 
@@ -101,6 +110,28 @@ public class BPlusTreePage {
 		}
 		
 		return buffer;
+	}
+
+	private void validate() throws IOException {
+		if (this.isLeaf()) {
+			if (this.keyCount != this.records.size()) {
+				throw new IOException("Invalid Page: " + this.getPageNumber() + 
+						" KeyCount: " + this.keyCount +
+						" RecordSize: " + this.records.size());
+			}
+			for (int i = 0; i < this.keyCount - 1; i++) {
+				if (this.getRecord(i).getKey().getInt() >= this.getRecord(i+1).getKey().getInt()) {
+					throw new IOException("Invalid Page: " + this.getPageNumber() + " Index: " + i);
+				}
+			}
+		}
+		else {
+			for (int i = 0; i < this.keyCount - 1; i++) {
+				if (!this.getKey(i).lessThan(this.getKey(i+1))) {
+					throw new IOException("Invalid Page: " + this.getPageNumber() + " Index: " + i);
+				}
+			}
+		}
 	}
 
 	public int getPageNumber() {
@@ -134,8 +165,6 @@ public class BPlusTreePage {
 	}
 
 	Key getKey(int i) {
-		if (this.isLeaf()) {
-		}
 		return new Key(data[i*2+1]);
 	}
 
@@ -149,9 +178,7 @@ public class BPlusTreePage {
 	}
 	
 	public void removeRecord(int index) {
-		for (int i = index; i < this.keyCount-1; i++) {
-			this.getRecord(i).copyFrom(this.getRecord(i+1));
-		}
+		this.records.remove(index);
 		this.keyCount--;
 	}
 	
@@ -179,6 +206,7 @@ public class BPlusTreePage {
 	public void copyNode(BPlusTreePage targetPage, int from, int count) {
 		targetPage.keyCount = 0;
 		if (this.isLeaf()) {
+			targetPage.records.clear();
 			for (int i = 0; i < count; i++) {
 				if (i < targetPage.records.size()) {
 					targetPage.getRecord(i).copyFrom(this.getRecord(i+from));
@@ -269,8 +297,8 @@ public class BPlusTreePage {
 		return this.keyCount;
 	}
 
-	public void freeBTreePage() {
-		
+	public void freeBTreePage() throws IOException {
+		BufferManager.getInstance().freePage(this.getPageNumber());
 	}
 
 	public void mergeLeaf(BPlusTreePage sibling, BPlusTreePage parent,
@@ -307,21 +335,13 @@ public class BPlusTreePage {
 		int moveCount = (sibling.getKeyCount() - child.getKeyCount()) / 2;
 		
 		if (child.getRecord(0).getKey().lessThan(sibling.getRecord(0).getKey())) {
-			for (int i = 0; i < moveCount; i++) {
-				child.appendRecord(sibling.getRecord(i));
-			}
-			sibling.keyCount -= moveCount;
-			
-			for (int i = 0; i < sibling.getKeyCount(); i++) {
-				sibling.copyRecord(i, sibling.getRecord(i));
-			}
-			// ??? 왜 sibling의 레코드를 parent에 복사하는지? 크기확인은 안해도 되는지?
-			parent.setKey(sibling.getKeyCount(), child.getRecord(child.getKeyCount()-1).getKey());
+			child.insertRecords(child.getKeyCount(), sibling.removeRecords(0, moveCount));
+			parent.setKey(index, child.getRecord(child.getKeyCount()-1).getKey());
 		}
 		else {
-			List<BPlusTreeRecord> records = sibling.removeRecords(0, sibling.getKeyCount());
+			List<BPlusTreeRecord> records = sibling.removeRecords(
+					sibling.getKeyCount()-moveCount, sibling.getKeyCount());
 			child.insertRecords(0, records);
-			
 			parent.setKey(index, sibling.getRecord(sibling.getKeyCount()-1).getKey());
 		}
 		

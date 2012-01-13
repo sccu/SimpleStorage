@@ -70,11 +70,12 @@ public class BPlusTreeHeader {
 	public StackItem peek() {
 		return stack.peek();
 	}
-
-	public void freePage(BPlusTreePage page) {
+	
+	public void freePage(BPlusTreePage page) throws IOException {
 		if (page.getPageNumber() == this.firstSequencePage) {
 			this.firstSequencePage = page.getNextPageNumber();
 		}
+		BufferManager.getInstance().freePage(page.getPageNumber());
 	}
 
 	public int getMaxRecord() {
