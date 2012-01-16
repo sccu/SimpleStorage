@@ -208,6 +208,7 @@ public class BPlusTreePage {
 		if (this.isLeaf()) {
 			targetPage.records.clear();
 			for (int i = 0; i < count; i++) {
+				//TODO delete if statement.
 				if (i < targetPage.records.size()) {
 					targetPage.getRecord(i).copyFrom(this.getRecord(i+from));
 				}
@@ -364,10 +365,6 @@ public class BPlusTreePage {
 		this.keyCount = this.records.size();
 		
 		return results;
-	}
-
-	private void copyRecord(int i, BPlusTreeRecord record) {
-		this.getRecord(i).copyFrom(record);
 	}
 
 	public void redistributeNode(BPlusTreePage sibling, BPlusTreePage parent,

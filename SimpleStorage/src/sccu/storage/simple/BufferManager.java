@@ -6,11 +6,14 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 
 public class BufferManager {
+	private static final int MAX_PAGE_SIZE = 10000;
 	private final static BufferManager m_bufferManager = new BufferManager();
 	private RandomAccessFile file = null;
 	private int pageSize;
 	private int maxPageNumber;
 	private int lastFreePageNumber;
+	
+	private boolean[] used = new boolean[MAX_PAGE_SIZE];
 	
 	public void initBufferManager(String filename, int pageSize) throws IOException {
 		File file = new File(filename);
@@ -70,21 +73,31 @@ public class BufferManager {
 		else {
 			freePageNumber = this.lastFreePageNumber;
 			
-			this.file.seek(freePageNumber * this.pageSize);
+			this.file.seek(freePageNumber * this.pageSize + 4);
 			int nextPageNumber = this.file.readInt();
 			if (nextPageNumber == -1) {
 				this.lastFreePageNumber = -1;
 			}
 			else {
-				this.lastFreePageNumber = nextPageNumber + 1;
+				//this.lastFreePageNumber = nextPageNumber + 1;
+				this.lastFreePageNumber = nextPageNumber;
 			}
 		}
 		
+		if (used[freePageNumber]) {
+			throw new IOException(freePageNumber + " already used.");
+		}
+		used[freePageNumber] = true;
 		return freePageNumber;
 	}
 	
 	public void freePage(int pageNumber) throws IOException {
-		this.file.seek(pageNumber * this.pageSize);
+		if (!used[pageNumber]) {
+			throw new IOException(pageNumber + " already used.");
+		}
+		used[pageNumber] = false;
+		
+		this.file.seek(pageNumber * this.pageSize + 4);
 		this.file.writeInt(this.lastFreePageNumber);
 		this.lastFreePageNumber = pageNumber;
 	}
@@ -96,6 +109,10 @@ public class BufferManager {
 		this.maxPageNumber = bb.getInt();
 		this.lastFreePageNumber = bb.getInt();
 		BPlusTreeHeader.getInstance().init(bb.getInt(), bb.getInt());
+	}
+
+	public void resetDebugData() {
+		used = new boolean[MAX_PAGE_SIZE];
 	}
 	
 }

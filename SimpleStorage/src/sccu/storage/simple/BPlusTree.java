@@ -11,6 +11,7 @@ public class BPlusTree {
 			BPlusTreePage page = new BPlusTreePage(true);
 			page.writeBTreePage();
 			BPlusTreeHeader.getInstance().init(page.getPageNumber(), page.getPageNumber());
+			BufferManager.getInstance().resetDebugData();
 		}
 		else {
 			BPlusTreeHeader.getInstance().loadBTreeHeaderPage();
