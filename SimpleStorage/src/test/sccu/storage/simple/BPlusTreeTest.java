@@ -19,7 +19,7 @@ import sccu.storage.simple.BPlusTreeRecord.Key;
 
 public class BPlusTreeTest {
 
-	private static final int PAGE_SIZE = 256;
+	private static final int PAGE_SIZE = 4096;
 	private static final int SIZE = 10000;
 	private BPlusTree m_tree;
 
@@ -129,7 +129,7 @@ public class BPlusTreeTest {
 			m_tree = new BPlusTree();
 			m_tree.initBTree("./data/test.btree", PAGE_SIZE, true);
 			
-			System.out.println("Seed:" + seed);
+			//System.out.println("Seed:" + seed);
 			Random rand = new Random(seed);
 			
 			ArrayList<Integer> list = new ArrayList<Integer>();
@@ -162,13 +162,13 @@ public class BPlusTreeTest {
 		
 		boolean[] contains = new boolean[SIZE];
 		
-		for (long seed = 10; seed < 20; seed++) {
-			System.out.println("Seed:" + seed);
+		for (long seed = 0; seed < 1; seed++) {
+			//System.out.println("Seed:" + seed);
 			Random randomKey = new Random(seed);
 			Random randomOperation = new Random(seed);
 			
 			BPlusTreeRecord record = new BPlusTreeRecord(0, "0");
-			for (int i = 0; i < SIZE * 10; i++) {
+			for (int i = 0; i < SIZE * 100; i++) {
 				int key = randomKey.nextInt(SIZE);
 				switch (randomOperation.nextInt(3)) {
 				case 0:	// insert
