@@ -1,9 +1,12 @@
 package sccu.storage.simple;
 
+import java.io.Serializable;
+
 
 public class BPlusTreeRecord {
 
-	public static class Key {
+	public static class Key implements Serializable {
+		private static final long serialVersionUID = 6875735879740205743L;
 		private int key;
 		public Key(int k) {
 			this.key = k;
