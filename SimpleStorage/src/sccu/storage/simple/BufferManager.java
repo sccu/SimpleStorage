@@ -102,13 +102,14 @@ public class BufferManager {
 		this.lastFreePageNumber = pageNumber;
 	}
 
-	public void loadHeaderPage() throws IOException {
+	public byte[] loadHeaderPage() throws IOException {
 		byte[] buffer = this.readPage(0);
 		ByteBuffer bb = ByteBuffer.wrap(buffer);
 		this.pageSize = bb.getInt();
 		this.maxPageNumber = bb.getInt();
 		this.lastFreePageNumber = bb.getInt();
-		BPlusTreeHeader.getInstance().init(bb.getInt(), bb.getInt());
+		
+		return buffer;
 	}
 
 	public void resetDebugData() {

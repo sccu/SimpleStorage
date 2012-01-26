@@ -9,6 +9,8 @@ import sccu.storage.simple.BPlusTreeRecord.Key;
 public class BPlusTreeHeader {
 
 	private static final int HEADER_PAGE_NUMBER = 0;
+	private static final int ROOT_PAGE_POSITION = 4 * 3;
+	private static final int FIRST_SEQ_POSITION = 4 * 4;
 
 	public static class StackItem {
 		public StackItem(int pageNumber, int index) {
@@ -19,32 +21,28 @@ public class BPlusTreeHeader {
 		int index;
 	}
 
-	private static BPlusTreeHeader m_header = new BPlusTreeHeader();
-
-	public static BPlusTreeHeader getInstance() {
-		return m_header;
-	}
-
 	private int rootPageNumber;
 	private int firstSequencePage;
-	private int order;
-	private int minKey;
-	private int maxRecord;
+	private static int order;
+	private static int minKey;
+	private static int maxRecord;
 	private Stack<StackItem> stack;
-	private int minRecord;
+	private static int minRecord;
 
 	public void init(int rootPageNumber, int firstSequence) {
 		this.rootPageNumber = rootPageNumber;
 		this.firstSequencePage = firstSequence;
-		this.order = (BufferManager.getInstance().getPageSize() - 4 * 4) / (4 * 2) + 1;
-		this.minKey = this.order / 2 - 1 + this.order % 2;
-		this.maxRecord = (BufferManager.getInstance().getPageSize() - 4 * 3) / BPlusTreeRecord.getSize();
-		this.minRecord = this.maxRecord / 2;
+		order = (BufferManager.getInstance().getPageSize() - 4 * 4) / (4 * 2) + 1;
+		minKey = order / 2 - 1 + order % 2;
+		maxRecord = (BufferManager.getInstance().getPageSize() - 4 * 3) / BPlusTreeRecord.getSize();
+		minRecord = maxRecord / 2;
 		this.stack = new Stack<StackItem>();
 	}
 
 	public void loadBTreeHeaderPage() throws IOException {
-		BufferManager.getInstance().loadHeaderPage();
+		byte[] buffer = BufferManager.getInstance().loadHeaderPage();
+		ByteBuffer bb = ByteBuffer.wrap(buffer);
+		this.init(bb.getInt(ROOT_PAGE_POSITION), bb.getInt(FIRST_SEQ_POSITION));
 	}
 
 	public void saveBTreeHeaderPage() throws IOException {
@@ -78,12 +76,12 @@ public class BPlusTreeHeader {
 		BufferManager.getInstance().freePage(page.getPageNumber());
 	}
 
-	public int getMaxRecord() {
-		return this.maxRecord;
+	public static int getMaxRecord() {
+		return maxRecord;
 	}
 
-	public int getOrder() {
-		return this.order;
+	public static int getOrder() {
+		return order;
 	}
 
 	public boolean insertRecord(BPlusTreeRecord record) throws IOException {
@@ -172,7 +170,7 @@ public class BPlusTreeHeader {
 				}
 				finished = true;
 			}
-			else if (child.getKeyCount() < this.getMin(child)) {
+			else if (child.getKeyCount() < BPlusTreeHeader.getMin(child)) {
 				item = peek();
 				int i = this.selectSibling(sibling, parent, item);
 				if (i == -1) {
@@ -215,24 +213,24 @@ public class BPlusTreeHeader {
 		parent.readBTreePage(item.pageNumber);
 		if (item.index == 0) {
 			sibling.readBTreePage(parent.getChild(1));
-			if (sibling.getKeyCount() > BPlusTreeHeader.getInstance().getMin(sibling)) {
+			if (sibling.getKeyCount() > BPlusTreeHeader.getMin(sibling)) {
 				i = item.index;
 			}
 		}
 		else if (item.index == parent.getKeyCount()) {
 			sibling.readBTreePage(parent.getChild(item.index-1));
-			if (sibling.getKeyCount() > BPlusTreeHeader.getInstance().getMin(sibling)) {
+			if (sibling.getKeyCount() > BPlusTreeHeader.getMin(sibling)) {
 				i = item.index - 1;
 			}
 		}
 		else {
 			sibling.readBTreePage(parent.getChild(item.index+1));
-			if (sibling.getKeyCount() > BPlusTreeHeader.getInstance().getMin(sibling)) {
+			if (sibling.getKeyCount() > BPlusTreeHeader.getMin(sibling)) {
 				i = item.index;
 			}
 			else {
 				sibling.readBTreePage(parent.getChild(item.index-1));
-				if (sibling.getKeyCount() > BPlusTreeHeader.getInstance().getMin(sibling)) {
+				if (sibling.getKeyCount() > BPlusTreeHeader.getMin(sibling)) {
 					i = item.index - 1;
 				}
 			}
@@ -241,8 +239,8 @@ public class BPlusTreeHeader {
 		return i;
 	}
 	
-	private int getMin(BPlusTreePage page) {
-		return page.isLeaf() ? this.minRecord : this.minKey;
+	private static int getMin(BPlusTreePage page) {
+		return page.isLeaf() ? minRecord : minKey;
 	}
 
 	boolean findRecord(Key key, BPlusTreePage page) throws IOException {

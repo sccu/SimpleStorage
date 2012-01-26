@@ -192,10 +192,10 @@ public class BPlusTreePage {
 
 	boolean isFull() {
 		if (this.isLeaf()) {
-			return this.keyCount == BPlusTreeHeader.getInstance().getMaxRecord();
+			return this.keyCount == BPlusTreeHeader.getMaxRecord();
 		}
 		else {
-			return this.keyCount == BPlusTreeHeader.getInstance().getOrder()-1;
+			return this.keyCount == BPlusTreeHeader.getOrder()-1;
 		}
 	}
 

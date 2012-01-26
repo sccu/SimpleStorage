@@ -5,37 +5,39 @@ import java.io.IOException;
 import sccu.storage.simple.BPlusTreeRecord.Key;
 
 public class BPlusTree {
+	private BPlusTreeHeader header = new BPlusTreeHeader();
+	
 	public void initBTree(String filename, int pageSize, boolean newStart) throws IOException {
 		BufferManager.getInstance().initBufferManager(filename, pageSize);
 		if (newStart) {
 			BPlusTreePage page = new BPlusTreePage(true);
 			page.writeBTreePage();
-			BPlusTreeHeader.getInstance().init(page.getPageNumber(), page.getPageNumber());
+			header.init(page.getPageNumber(), page.getPageNumber());
 			BufferManager.getInstance().resetDebugData();
 		}
 		else {
-			BPlusTreeHeader.getInstance().loadBTreeHeaderPage();
+			header.loadBTreeHeaderPage();
 		}
 	}
 	
 	public void closeBTree() throws IOException {
-		BPlusTreeHeader.getInstance().saveBTreeHeaderPage();
+		header.saveBTreeHeaderPage();
 		BufferManager.getInstance().close();
 	}
 	
 	public boolean insertRecord(BPlusTreeRecord record) throws IOException {
-		return BPlusTreeHeader.getInstance().insertRecord(record);
+		return header.insertRecord(record);
 	}
 	
 	public boolean deleteRecord(Key key) throws IOException {
-		return BPlusTreeHeader.getInstance().deleteRecord(key);
+		return header.deleteRecord(key);
 	}
 
 	public boolean retrieveRecord(Key key, BPlusTreeRecord record) throws IOException {
 		BPlusTreePage page = new BPlusTreePage();
-		boolean found = BPlusTreeHeader.getInstance().findRecord(key, page);
+		boolean found = header.findRecord(key, page);
 		if (found) {
-			int i = BPlusTreeHeader.getInstance().peek().index;
+			int i = header.peek().index;
 			record.copyFrom(page.getRecord(i));
 		}
 		return found;
