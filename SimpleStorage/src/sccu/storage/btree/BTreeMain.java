@@ -1,4 +1,4 @@
-package sccu.storage.simple;
+package sccu.storage.btree;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -6,9 +6,9 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.StringTokenizer;
 
-import sccu.storage.simple.BPlusTreeRecord.Key;
+import sccu.storage.btree.BTreeRecord.Key;
 
-public class BPlusTreeMain {
+public class BTreeMain {
 
 	/**
 	 * @param args
@@ -22,7 +22,7 @@ public class BPlusTreeMain {
 		}
 		*/
 		
-		BPlusTree tree = new BPlusTree();
+		BTree tree = new BTree();
 		tree.initBTree("./data/test.btree", 64, true);
 		
 		File commandFile = new File("./data/cmd.txt");
@@ -34,13 +34,13 @@ public class BPlusTreeMain {
 			String key = st.nextToken();
 			switch(command.charAt(0)) {
 			case 'i':
-				tree.insertRecord(new BPlusTreeRecord(Integer.parseInt(key), st.nextToken()));
+				tree.insertRecord(new BTreeRecord(Integer.parseInt(key), st.nextToken()));
 				break;
 			case 'd':
 				tree.deleteRecord(new Key(Integer.parseInt(key)));
 				break;
 			case 'r':
-				BPlusTreeRecord record = new BPlusTreeRecord();
+				BTreeRecord record = new BTreeRecord();
 				tree.retrieveRecord(new Key(Integer.parseInt(key)), record);
 				break;
 			default:

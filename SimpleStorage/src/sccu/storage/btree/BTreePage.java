@@ -1,4 +1,4 @@
-package sccu.storage.simple;
+package sccu.storage.btree;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -6,18 +6,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import sccu.storage.simple.BPlusTreeHeader.StackItem;
-import sccu.storage.simple.BPlusTreeRecord.Key;
+import sccu.storage.btree.BTreeHeader.StackItem;
+import sccu.storage.btree.BTreeRecord.Key;
 
-public class BPlusTreePage {
+public class BTreePage {
 
 	private int pageNumber;
 	private int nextPageNumber;
 	private int keyCount;
 	private int[] data = null;
-	private ArrayList<BPlusTreeRecord> records = new ArrayList<BPlusTreeRecord>();
+	private ArrayList<BTreeRecord> records = new ArrayList<BTreeRecord>();
 
-	public BPlusTreePage(boolean leaf) throws IOException {
+	public BTreePage(boolean leaf) throws IOException {
 		this.pageNumber = newPageNumber();
 		if (leaf) {
 			this.nextPageNumber = 0;
@@ -32,7 +32,7 @@ public class BPlusTreePage {
 		}
 	}
 
-	public BPlusTreePage(int pageNumber, boolean leaf) {
+	public BTreePage(int pageNumber, boolean leaf) {
 		this.pageNumber = pageNumber;
 		if (leaf) {
 			this.nextPageNumber = 0;
@@ -47,7 +47,7 @@ public class BPlusTreePage {
 		}
 	}
 
-	public BPlusTreePage() {
+	public BTreePage() {
 	}
 
 	private static int newPageNumber() throws IOException {
@@ -65,9 +65,9 @@ public class BPlusTreePage {
 		if (this.isLeaf()) {
 			for (int i = 0; i < this.keyCount; i++) {
 				int key = bb.getInt();
-				byte[] value = new byte[BPlusTreeRecord.Value.getSize()];
+				byte[] value = new byte[BTreeRecord.Value.getSize()];
 				bb.get(value);
-				this.records.add(new BPlusTreeRecord(key, new String(value)));
+				this.records.add(new BTreeRecord(key, new String(value)));
 			}
 		}
 		else {
@@ -96,7 +96,7 @@ public class BPlusTreePage {
 		if (this.isLeaf()) {
 			for (int i = 0; i < this.keyCount; i++) {
 				bb.putInt(this.records.get(i).getKey().getInt());
-				byte[] value = Arrays.copyOf(this.records.get(i).getValue().getBytes(), BPlusTreeRecord.Value.getSize());
+				byte[] value = Arrays.copyOf(this.records.get(i).getValue().getBytes(), BTreeRecord.Value.getSize());
 				bb.put(value);
 			}
 		}
@@ -168,12 +168,12 @@ public class BPlusTreePage {
 		return new Key(data[i*2+1]);
 	}
 
-	public void addRecord(BPlusTreeRecord record, int index) {
+	public void addRecord(BTreeRecord record, int index) {
 		this.records.add(index, record.deepCopy());
 		this.keyCount++;
 	}
 
-	BPlusTreeRecord getRecord(int index) {
+	BTreeRecord getRecord(int index) {
 		return this.records.get(index);
 	}
 	
@@ -192,10 +192,10 @@ public class BPlusTreePage {
 
 	boolean isFull() {
 		if (this.isLeaf()) {
-			return this.keyCount == BPlusTreeHeader.getMaxRecord();
+			return this.keyCount == BTreeHeader.getMaxRecord();
 		}
 		else {
-			return this.keyCount == BPlusTreeHeader.getOrder()-1;
+			return this.keyCount == BTreeHeader.getOrder()-1;
 		}
 	}
 
@@ -203,7 +203,7 @@ public class BPlusTreePage {
 		return this.nextPageNumber != -1;
 	}
 	
-	public void copyNode(BPlusTreePage targetPage, int from, int count) {
+	public void copyNode(BTreePage targetPage, int from, int count) {
 		targetPage.keyCount = 0;
 		if (this.isLeaf()) {
 			targetPage.records.clear();
@@ -228,8 +228,8 @@ public class BPlusTreePage {
 		}
 	}
 	
-	public Key splitLeaf(BPlusTreeRecord record, BPlusTreePage rightPage, int index) throws IOException {
-		BPlusTreePage tempPage = new BPlusTreePage(-2, true);
+	public Key splitLeaf(BTreeRecord record, BTreePage rightPage, int index) throws IOException {
+		BTreePage tempPage = new BTreePage(-2, true);
 		this.copyNode(tempPage, 0, this.keyCount);
 		tempPage.addRecord(record, index);
 		
@@ -249,8 +249,8 @@ public class BPlusTreePage {
 		return midKey;
 	}
 
-	public Key splitNode(Key key, int newChild, BPlusTreePage rightPage, int index) throws IOException {
-		BPlusTreePage tempPage = new BPlusTreePage(-2, false);
+	public Key splitNode(Key key, int newChild, BTreePage rightPage, int index) throws IOException {
+		BTreePage tempPage = new BTreePage(-2, false);
 		this.copyNode(tempPage, 0, this.keyCount);
 		tempPage.addKey(key, newChild, index);
 		
@@ -266,11 +266,11 @@ public class BPlusTreePage {
 		return midKey;
 	}
 
-	public void mergeNode(BPlusTreePage sibling,
-			BPlusTreePage parent, StackItem item) throws IOException {
-		BPlusTreePage child = this;
+	public void mergeNode(BTreePage sibling,
+			BTreePage parent, StackItem item) throws IOException {
+		BTreePage child = this;
 		if (item.index == parent.getKeyCount()) {
-			BPlusTreePage tempPage = sibling;
+			BTreePage tempPage = sibling;
 			sibling = child;
 			child = tempPage;
 			item.index--;
@@ -302,11 +302,11 @@ public class BPlusTreePage {
 		BufferManager.getInstance().freePage(this.getPageNumber());
 	}
 
-	public void mergeLeaf(BPlusTreePage sibling, BPlusTreePage parent,
+	public void mergeLeaf(BTreePage sibling, BTreePage parent,
 			StackItem item) throws IOException {
-		BPlusTreePage child = this;
+		BTreePage child = this;
 		if (item.index == parent.getKeyCount()) {
-			BPlusTreePage tempPage = sibling;
+			BTreePage tempPage = sibling;
 			sibling = child;
 			child = tempPage;
 			item.index--;
@@ -324,14 +324,14 @@ public class BPlusTreePage {
 		sibling.freeBTreePage();
 	}
 
-	private void appendRecord(BPlusTreeRecord record) {
+	private void appendRecord(BTreeRecord record) {
 		this.records.add(record.deepCopy());
 		this.keyCount++;
 	}
 	
-	public void redistributeLeaf(BPlusTreePage sibling,
-			BPlusTreePage parent, int index) throws IOException {
-		BPlusTreePage child = this;
+	public void redistributeLeaf(BTreePage sibling,
+			BTreePage parent, int index) throws IOException {
+		BTreePage child = this;
 		
 		int moveCount = (sibling.getKeyCount() - child.getKeyCount()) / 2;
 		
@@ -340,7 +340,7 @@ public class BPlusTreePage {
 			parent.setKey(index, child.getRecord(child.getKeyCount()-1).getKey());
 		}
 		else {
-			List<BPlusTreeRecord> records = sibling.removeRecords(
+			List<BTreeRecord> records = sibling.removeRecords(
 					sibling.getKeyCount()-moveCount, sibling.getKeyCount());
 			child.insertRecords(0, records);
 			parent.setKey(index, sibling.getRecord(sibling.getKeyCount()-1).getKey());
@@ -350,15 +350,15 @@ public class BPlusTreePage {
 		sibling.writeBTreePage();
 	}
 
-	private void insertRecords(int index, List<BPlusTreeRecord> records) {
+	private void insertRecords(int index, List<BTreeRecord> records) {
 		this.records.addAll(index, records);
 		this.keyCount = this.records.size();
 	}
 
-	private List<BPlusTreeRecord> removeRecords(int fromIndex, int toIndex) {
-		List<BPlusTreeRecord> results = this.records.subList(fromIndex, toIndex);
+	private List<BTreeRecord> removeRecords(int fromIndex, int toIndex) {
+		List<BTreeRecord> results = this.records.subList(fromIndex, toIndex);
 		
-		ArrayList<BPlusTreeRecord> newRecords = new ArrayList<BPlusTreeRecord>();
+		ArrayList<BTreeRecord> newRecords = new ArrayList<BTreeRecord>();
 		newRecords.addAll(this.records.subList(0, fromIndex));
 		newRecords.addAll(this.records.subList(toIndex, this.records.size()));
 		this.records = newRecords;
@@ -367,9 +367,9 @@ public class BPlusTreePage {
 		return results;
 	}
 
-	public void redistributeNode(BPlusTreePage sibling, BPlusTreePage parent,
+	public void redistributeNode(BTreePage sibling, BTreePage parent,
 			int index) throws IOException {
-		BPlusTreePage child = this;
+		BTreePage child = this;
 		
 		int moveCount = (sibling.getKeyCount() - child.getKeyCount()) / 2;
 		if (child.getKey(0).lessThan(sibling.getKey(0))) {

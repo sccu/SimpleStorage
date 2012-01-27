@@ -1,4 +1,4 @@
-package test.sccu.storage.simple;
+package test.sccu.storage.btree;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -13,19 +13,19 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import sccu.storage.simple.BPlusTree;
-import sccu.storage.simple.BPlusTreeRecord;
-import sccu.storage.simple.BPlusTreeRecord.Key;
+import sccu.storage.btree.BTree;
+import sccu.storage.btree.BTreeRecord;
+import sccu.storage.btree.BTreeRecord.Key;
 
-public class BPlusTreeTest {
+public class BTreeTest {
 
 	private static final int PAGE_SIZE = 4096;
 	private static final int SIZE = 10000;
-	private BPlusTree m_tree;
+	private BTree m_tree;
 
 	@Before
 	public void setUp() throws Exception {
-		m_tree = new BPlusTree();
+		m_tree = new BTree();
 		m_tree.initBTree("./data/test.btree", PAGE_SIZE, false);
 	}
 
@@ -37,20 +37,20 @@ public class BPlusTreeTest {
 	@Test
 	public void testInsert() throws IOException {
 		//m_tree.closeBTree();
-		m_tree = new BPlusTree();
+		m_tree = new BTree();
 		m_tree.initBTree("./data/test.btree", PAGE_SIZE, true);
 		
 		for (int i = 0; i < SIZE; i++) {
-			BPlusTreeRecord record = new BPlusTreeRecord(i, Integer.toString(i));
+			BTreeRecord record = new BTreeRecord(i, Integer.toString(i));
 			assertTrue(m_tree.insertRecord(record));
 		}
 		
 		for (int i = 0; i < SIZE; i++) {
-			BPlusTreeRecord record = new BPlusTreeRecord(i, Integer.toString(i));
+			BTreeRecord record = new BTreeRecord(i, Integer.toString(i));
 			assertTrue(m_tree.retrieveRecord(new Key(i), record));
 			assertEquals(Integer.toString(i), record.getValue().trim());
 		}
-		BPlusTreeRecord record = new BPlusTreeRecord(-1, Integer.toString(-1));
+		BTreeRecord record = new BTreeRecord(-1, Integer.toString(-1));
 		assertFalse(m_tree.retrieveRecord(new Key(-1), record));
 		assertFalse(m_tree.retrieveRecord(new Key(SIZE), record));
 	}
@@ -58,11 +58,11 @@ public class BPlusTreeTest {
 	@Test
 	public void testLoad() throws IOException {
 		for (int i = 0; i < SIZE; i++) {
-			BPlusTreeRecord record = new BPlusTreeRecord(i, Integer.toString(i));
+			BTreeRecord record = new BTreeRecord(i, Integer.toString(i));
 			assertTrue(m_tree.retrieveRecord(new Key(i), record));
 			assertEquals(Integer.toString(i), record.getValue().trim());
 		}
-		BPlusTreeRecord record = new BPlusTreeRecord(-1, Integer.toString(-1));
+		BTreeRecord record = new BTreeRecord(-1, Integer.toString(-1));
 		assertFalse(m_tree.retrieveRecord(new Key(-1), record));
 		assertFalse(m_tree.retrieveRecord(new Key(SIZE), record));
 	}
@@ -73,7 +73,7 @@ public class BPlusTreeTest {
 			assertTrue("Delete KEY:"+i, m_tree.deleteRecord(new Key(i)));
 		}
 		for (int i = 0; i < SIZE; i++) {
-			BPlusTreeRecord record = new BPlusTreeRecord(i, Integer.toString(i));
+			BTreeRecord record = new BTreeRecord(i, Integer.toString(i));
 			assertFalse("Retrieve KEY:"+i, m_tree.retrieveRecord(new Key(i), record));
 		}
 	}
@@ -81,20 +81,20 @@ public class BPlusTreeTest {
 	@Test
 	public void testInsertReversely() throws IOException {
 		m_tree.closeBTree();
-		m_tree = new BPlusTree();
+		m_tree = new BTree();
 		m_tree.initBTree("./data/test.btree", PAGE_SIZE, true);
 		
 		for (int i = SIZE-1; i >= 0; i--) {
-			BPlusTreeRecord record = new BPlusTreeRecord(i, Integer.toString(i));
+			BTreeRecord record = new BTreeRecord(i, Integer.toString(i));
 			assertTrue(m_tree.insertRecord(record));
 		}
 		
 		for (int i = 0; i < SIZE; i++) {
-			BPlusTreeRecord record = new BPlusTreeRecord(i, Integer.toString(i));
+			BTreeRecord record = new BTreeRecord(i, Integer.toString(i));
 			assertTrue(m_tree.retrieveRecord(new Key(i), record));
 			assertEquals(Integer.toString(i), record.getValue().trim());
 		}
-		BPlusTreeRecord record = new BPlusTreeRecord(-1, Integer.toString(-1));
+		BTreeRecord record = new BTreeRecord(-1, Integer.toString(-1));
 		assertFalse(m_tree.retrieveRecord(new Key(-1), record));
 		assertFalse(m_tree.retrieveRecord(new Key(SIZE), record));
 	}
@@ -102,11 +102,11 @@ public class BPlusTreeTest {
 	@Test
 	public void testLoadAfterInsertReversely() throws IOException {
 		for (int i = 0; i < SIZE; i++) {
-			BPlusTreeRecord record = new BPlusTreeRecord(i, Integer.toString(i));
+			BTreeRecord record = new BTreeRecord(i, Integer.toString(i));
 			assertTrue(m_tree.retrieveRecord(new Key(i), record));
 			assertEquals(Integer.toString(i), record.getValue().trim());
 		}
-		BPlusTreeRecord record = new BPlusTreeRecord(-1, Integer.toString(-1));
+		BTreeRecord record = new BTreeRecord(-1, Integer.toString(-1));
 		assertFalse(m_tree.retrieveRecord(new Key(-1), record));
 		assertFalse(m_tree.retrieveRecord(new Key(SIZE), record));
 	}
@@ -117,7 +117,7 @@ public class BPlusTreeTest {
 			assertTrue(m_tree.deleteRecord(new Key(i)));
 		}
 		for (int i = 0; i < SIZE; i++) {
-			BPlusTreeRecord record = new BPlusTreeRecord(i, Integer.toString(i));
+			BTreeRecord record = new BTreeRecord(i, Integer.toString(i));
 			assertFalse("Retrieve KEY:"+i, m_tree.retrieveRecord(new Key(i), record));
 		}
 	}
@@ -126,7 +126,7 @@ public class BPlusTreeTest {
 	public void testInsertRandomly() throws IOException {
 		for (long seed = 10; seed < 20; seed++) {
 			m_tree.closeBTree();
-			m_tree = new BPlusTree();
+			m_tree = new BTree();
 			m_tree.initBTree("./data/test.btree", PAGE_SIZE, true);
 			
 			//System.out.println("Seed:" + seed);
@@ -139,16 +139,16 @@ public class BPlusTreeTest {
 			Collections.shuffle(list, rand);
 			
 			for (Integer i : list) {
-				BPlusTreeRecord record = new BPlusTreeRecord(i, Integer.toString(i));
+				BTreeRecord record = new BTreeRecord(i, Integer.toString(i));
 				assertTrue(m_tree.insertRecord(record));
 			}
 			
 			for (Integer i : list) {
-				BPlusTreeRecord record = new BPlusTreeRecord(i, Integer.toString(-2));
+				BTreeRecord record = new BTreeRecord(i, Integer.toString(-2));
 				assertTrue("i: " + i, m_tree.retrieveRecord(new Key(i), record));
 				assertEquals("i: " + i, Integer.toString(i), record.getValue().trim());
 			}
-			BPlusTreeRecord record = new BPlusTreeRecord(-1, Integer.toString(-1));
+			BTreeRecord record = new BTreeRecord(-1, Integer.toString(-1));
 			assertFalse(m_tree.retrieveRecord(new Key(-1), record));
 			assertFalse(m_tree.retrieveRecord(new Key(list.size()), record));
 		}
@@ -157,7 +157,7 @@ public class BPlusTreeTest {
 	@Test
 	public void testRandomly() throws IOException {
 		m_tree.closeBTree();
-		m_tree = new BPlusTree();
+		m_tree = new BTree();
 		m_tree.initBTree("./data/test.btree", PAGE_SIZE, true);
 		
 		boolean[] contains = new boolean[SIZE];
@@ -167,13 +167,13 @@ public class BPlusTreeTest {
 			Random randomKey = new Random(seed);
 			Random randomOperation = new Random(seed);
 			
-			BPlusTreeRecord record = new BPlusTreeRecord(0, "0");
+			BTreeRecord record = new BTreeRecord(0, "0");
 			for (int i = 0; i < SIZE * 100; i++) {
 				int key = randomKey.nextInt(SIZE);
 				switch (randomOperation.nextInt(3)) {
 				case 0:	// insert
 					assertEquals("seed:" + seed + ", iter:"+i + ", key:" + key,
-							!contains[key], m_tree.insertRecord(new BPlusTreeRecord(key, String.valueOf(key))));
+							!contains[key], m_tree.insertRecord(new BTreeRecord(key, String.valueOf(key))));
 					contains[key] = true;
 					
 					break;
@@ -195,7 +195,7 @@ public class BPlusTreeTest {
 				}
 			}
 		}
-		BPlusTreeRecord record = new BPlusTreeRecord(0, "0");
+		BTreeRecord record = new BTreeRecord(0, "0");
 		for (int j = 0; j < SIZE; j++) {
 			assertEquals(contains[j], m_tree.retrieveRecord(new Key(j), record));
 			if (contains[j]) {

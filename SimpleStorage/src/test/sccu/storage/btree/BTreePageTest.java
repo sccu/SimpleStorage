@@ -1,4 +1,4 @@
-package test.sccu.storage.simple;
+package test.sccu.storage.btree;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -10,7 +10,7 @@ import java.nio.ByteOrder;
 import org.junit.Test;
 
 
-public class BPlusTreePageTest {
+public class BTreePageTest {
 
 	@Test
 	public void testByteBuffer() {

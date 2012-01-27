@@ -1,18 +1,16 @@
 /**
  * 
  */
-package test.sccu.storage.simple;
+package test.sccu.storage.btree;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
+import java.io.Serializable;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import sccu.storage.simple.BPlusTreeRecord;
 
 /**
  * @author sccu
@@ -20,6 +18,10 @@ import sccu.storage.simple.BPlusTreeRecord;
  */
 public class BufferManagerTest {
 
+	public static class Array implements Serializable {
+		private static final long serialVersionUID = 1026259799097567472L;
+		private byte[] a = new byte[32];
+	}
 	/**
 	 * @throws java.lang.Exception
 	 */
@@ -35,25 +37,25 @@ public class BufferManagerTest {
 	}
 
 	@Test
-	public void test() throws IOException {
+	public void testArray() throws IOException {
+		
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
 		ObjectOutputStream oos = new ObjectOutputStream(os);
 		
-//		oos.writeObject(new BPlusTreeRecord.Key(1));
-//		oos.writeObject(new BPlusTreeRecord.Key(2));
-//		oos.writeObject(new BPlusTreeRecord.Key(3));
-//		oos.writeObject(new BPlusTreeRecord.Key(5));
-//		oos.writeObject(new BPlusTreeRecord.Key(1203981234));
-		oos.writeObject(new Integer(1));
-		oos.writeObject(new Integer(2));
-		byte[] ba = os.toByteArray();
-		//System.out.print(ba.length);
-		
-		for (byte b : ba) {
-			System.out.println(b);
+		for (int i = 0; i < 1000; i++) {
+			oos.writeObject(new Array());
 		}
-		
+		byte[] ba = os.toByteArray();
 		System.out.println("Size:" + ba.length);
+		
+	}
+	
+	@Test
+	public void testStringGetBytes() {
+		String str = "abcde";
+		byte[] b = str.getBytes();
+		b[0] = 'c';
+		System.out.println(str);
 	}
 
 }

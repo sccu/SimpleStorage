@@ -1,12 +1,12 @@
-package sccu.storage.simple;
+package sccu.storage.btree;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Stack;
 
-import sccu.storage.simple.BPlusTreeRecord.Key;
+import sccu.storage.btree.BTreeRecord.Key;
 
-public class BPlusTreeHeader {
+public class BTreeHeader {
 
 	private static final int HEADER_PAGE_NUMBER = 0;
 	private static final int ROOT_PAGE_POSITION = 4 * 3;
@@ -34,7 +34,7 @@ public class BPlusTreeHeader {
 		this.firstSequencePage = firstSequence;
 		order = (BufferManager.getInstance().getPageSize() - 4 * 4) / (4 * 2) + 1;
 		minKey = order / 2 - 1 + order % 2;
-		maxRecord = (BufferManager.getInstance().getPageSize() - 4 * 3) / BPlusTreeRecord.getSize();
+		maxRecord = (BufferManager.getInstance().getPageSize() - 4 * 3) / BTreeRecord.getSize();
 		minRecord = maxRecord / 2;
 		this.stack = new Stack<StackItem>();
 	}
@@ -69,7 +69,7 @@ public class BPlusTreeHeader {
 		return stack.peek();
 	}
 	
-	public void freePage(BPlusTreePage page) throws IOException {
+	public void freePage(BTreePage page) throws IOException {
 		if (page.getPageNumber() == this.firstSequencePage) {
 			this.firstSequencePage = page.getNextPageNumber();
 		}
@@ -84,15 +84,15 @@ public class BPlusTreeHeader {
 		return order;
 	}
 
-	public boolean insertRecord(BPlusTreeRecord record) throws IOException {
-		BPlusTreePage page = new BPlusTreePage(0, true);
+	public boolean insertRecord(BTreeRecord record) throws IOException {
+		BTreePage page = new BTreePage(0, true);
 		if (findRecord(record.getKey(), page)) {
 			return false;
 		}
 		
 		int index = 0;
 		int leftPageNumber = 0;
-		BPlusTreePage rightPage = null;
+		BTreePage rightPage = null;
 		Key key = record.getKey();
 		
 		boolean finished = false;
@@ -100,28 +100,28 @@ public class BPlusTreeHeader {
 			if (stack.empty()) {
 				// 새로운 루트 생성하면서 트리 높이가 1 증가
 				leftPageNumber = this.rootPageNumber;
-				page = new BPlusTreePage(false);
+				page = new BTreePage(false);
 				this.rootPageNumber = page.getPageNumber();
 				page.setChild(0, leftPageNumber);
 				index = 0;
 			}
 			else {
-				BPlusTreeHeader.StackItem item = stack.pop();
+				BTreeHeader.StackItem item = stack.pop();
 				index = item.index;
 				if (rightPage != null && rightPage.getPageNumber() != HEADER_PAGE_NUMBER) {
-					page = new BPlusTreePage();
+					page = new BTreePage();
 					page.readBTreePage(item.pageNumber);
 				}
 			}
 			
 			if (page.isFull()) {
 				if (page.isLeaf()) {
-					rightPage = new BPlusTreePage(true);
+					rightPage = new BTreePage(true);
 					key = page.splitLeaf(record, rightPage, index);
 				}
 				else {
 					int newChild = rightPage.getPageNumber();
-					rightPage = new BPlusTreePage(false);
+					rightPage = new BTreePage(false);
 					key = page.splitNode(key, newChild, rightPage, index);
 				}
 			}
@@ -142,9 +142,9 @@ public class BPlusTreeHeader {
 	}
 	
 	boolean deleteRecord(Key key) throws IOException {
-		BPlusTreePage child = new BPlusTreePage(0, true);
-		BPlusTreePage sibling = new BPlusTreePage(0, true);
-		BPlusTreePage parent = new BPlusTreePage(0, true);
+		BTreePage child = new BTreePage(0, true);
+		BTreePage sibling = new BTreePage(0, true);
+		BTreePage parent = new BTreePage(0, true);
 		
 		if (!findRecord(key, child)) {
 			return false;
@@ -170,7 +170,7 @@ public class BPlusTreeHeader {
 				}
 				finished = true;
 			}
-			else if (child.getKeyCount() < BPlusTreeHeader.getMin(child)) {
+			else if (child.getKeyCount() < BTreeHeader.getMin(child)) {
 				item = peek();
 				int i = this.selectSibling(sibling, parent, item);
 				if (i == -1) {
@@ -193,7 +193,7 @@ public class BPlusTreeHeader {
 					finished = true;
 				}
 				
-				BPlusTreePage temp = child;
+				BTreePage temp = child;
 				child = parent;
 				parent = temp;
 			}
@@ -207,30 +207,30 @@ public class BPlusTreeHeader {
 		return true;
 	}
 	
-	private int selectSibling(BPlusTreePage sibling, BPlusTreePage parent,
+	private int selectSibling(BTreePage sibling, BTreePage parent,
 			StackItem item) throws IOException {
 		int i = -1;
 		parent.readBTreePage(item.pageNumber);
 		if (item.index == 0) {
 			sibling.readBTreePage(parent.getChild(1));
-			if (sibling.getKeyCount() > BPlusTreeHeader.getMin(sibling)) {
+			if (sibling.getKeyCount() > BTreeHeader.getMin(sibling)) {
 				i = item.index;
 			}
 		}
 		else if (item.index == parent.getKeyCount()) {
 			sibling.readBTreePage(parent.getChild(item.index-1));
-			if (sibling.getKeyCount() > BPlusTreeHeader.getMin(sibling)) {
+			if (sibling.getKeyCount() > BTreeHeader.getMin(sibling)) {
 				i = item.index - 1;
 			}
 		}
 		else {
 			sibling.readBTreePage(parent.getChild(item.index+1));
-			if (sibling.getKeyCount() > BPlusTreeHeader.getMin(sibling)) {
+			if (sibling.getKeyCount() > BTreeHeader.getMin(sibling)) {
 				i = item.index;
 			}
 			else {
 				sibling.readBTreePage(parent.getChild(item.index-1));
-				if (sibling.getKeyCount() > BPlusTreeHeader.getMin(sibling)) {
+				if (sibling.getKeyCount() > BTreeHeader.getMin(sibling)) {
 					i = item.index - 1;
 				}
 			}
@@ -239,11 +239,11 @@ public class BPlusTreeHeader {
 		return i;
 	}
 	
-	private static int getMin(BPlusTreePage page) {
+	private static int getMin(BTreePage page) {
 		return page.isLeaf() ? minRecord : minKey;
 	}
 
-	boolean findRecord(Key key, BPlusTreePage page) throws IOException {
+	boolean findRecord(Key key, BTreePage page) throws IOException {
 		int currentPageNumber = this.rootPageNumber;
 		this.stack.clear();
 		page.readBTreePage(currentPageNumber);
