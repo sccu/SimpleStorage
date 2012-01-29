@@ -2,12 +2,12 @@ package sccu.storage.btree.key;
 
 import java.util.Arrays;
 
-public class StringKey implements BTreeKey<StringKey> {
+public class StringType implements BTreeDataType<StringType> {
 
 	private final String value;
 	private final int limit;
 
-	public StringKey(String val, int limit) {
+	public StringType(String val, int limit) {
 		if (val.length() > limit) {
 			this.value = val.substring(0, limit);
 		}
@@ -18,7 +18,7 @@ public class StringKey implements BTreeKey<StringKey> {
 	}
 
 	@Override
-	public int compareTo(StringKey other) {
+	public int compareTo(StringType other) {
 		return this.value.compareTo(other.value);
 	}
 

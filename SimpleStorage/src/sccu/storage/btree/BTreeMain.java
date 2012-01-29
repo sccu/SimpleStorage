@@ -6,7 +6,7 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.StringTokenizer;
 
-import sccu.storage.btree.BTreeRecord.Key;
+import sccu.storage.btree.key.BTreeKey;
 
 public class BTreeMain {
 
@@ -37,11 +37,11 @@ public class BTreeMain {
 				tree.insertRecord(new BTreeRecord(Integer.parseInt(key), st.nextToken()));
 				break;
 			case 'd':
-				tree.deleteRecord(new Key(Integer.parseInt(key)));
+				tree.deleteRecord(new BTreeKey(Integer.parseInt(key)));
 				break;
 			case 'r':
 				BTreeRecord record = new BTreeRecord();
-				tree.retrieveRecord(new Key(Integer.parseInt(key)), record);
+				tree.retrieveRecord(new BTreeKey(Integer.parseInt(key)), record);
 				break;
 			default:
 				throw new Exception();

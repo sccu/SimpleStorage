@@ -15,7 +15,7 @@ import org.junit.Test;
 
 import sccu.storage.btree.BTree;
 import sccu.storage.btree.BTreeRecord;
-import sccu.storage.btree.BTreeRecord.Key;
+import sccu.storage.btree.key.BTreeKey;
 
 public class BTreeTest {
 
@@ -47,34 +47,34 @@ public class BTreeTest {
 		
 		for (int i = 0; i < SIZE; i++) {
 			BTreeRecord record = new BTreeRecord(i, Integer.toString(i));
-			assertTrue(m_tree.retrieveRecord(new Key(i), record));
+			assertTrue(m_tree.retrieveRecord(new BTreeKey(i), record));
 			assertEquals(Integer.toString(i), record.getValue().trim());
 		}
 		BTreeRecord record = new BTreeRecord(-1, Integer.toString(-1));
-		assertFalse(m_tree.retrieveRecord(new Key(-1), record));
-		assertFalse(m_tree.retrieveRecord(new Key(SIZE), record));
+		assertFalse(m_tree.retrieveRecord(new BTreeKey(-1), record));
+		assertFalse(m_tree.retrieveRecord(new BTreeKey(SIZE), record));
 	}
 
 	@Test
 	public void testLoad() throws IOException {
 		for (int i = 0; i < SIZE; i++) {
 			BTreeRecord record = new BTreeRecord(i, Integer.toString(i));
-			assertTrue(m_tree.retrieveRecord(new Key(i), record));
+			assertTrue(m_tree.retrieveRecord(new BTreeKey(i), record));
 			assertEquals(Integer.toString(i), record.getValue().trim());
 		}
 		BTreeRecord record = new BTreeRecord(-1, Integer.toString(-1));
-		assertFalse(m_tree.retrieveRecord(new Key(-1), record));
-		assertFalse(m_tree.retrieveRecord(new Key(SIZE), record));
+		assertFalse(m_tree.retrieveRecord(new BTreeKey(-1), record));
+		assertFalse(m_tree.retrieveRecord(new BTreeKey(SIZE), record));
 	}
 
 	@Test
 	public void testDelete() throws IOException {
 		for (int i = 0; i < SIZE; i++) {
-			assertTrue("Delete KEY:"+i, m_tree.deleteRecord(new Key(i)));
+			assertTrue("Delete KEY:"+i, m_tree.deleteRecord(new BTreeKey(i)));
 		}
 		for (int i = 0; i < SIZE; i++) {
 			BTreeRecord record = new BTreeRecord(i, Integer.toString(i));
-			assertFalse("Retrieve KEY:"+i, m_tree.retrieveRecord(new Key(i), record));
+			assertFalse("Retrieve KEY:"+i, m_tree.retrieveRecord(new BTreeKey(i), record));
 		}
 	}
 	
@@ -91,34 +91,34 @@ public class BTreeTest {
 		
 		for (int i = 0; i < SIZE; i++) {
 			BTreeRecord record = new BTreeRecord(i, Integer.toString(i));
-			assertTrue(m_tree.retrieveRecord(new Key(i), record));
+			assertTrue(m_tree.retrieveRecord(new BTreeKey(i), record));
 			assertEquals(Integer.toString(i), record.getValue().trim());
 		}
 		BTreeRecord record = new BTreeRecord(-1, Integer.toString(-1));
-		assertFalse(m_tree.retrieveRecord(new Key(-1), record));
-		assertFalse(m_tree.retrieveRecord(new Key(SIZE), record));
+		assertFalse(m_tree.retrieveRecord(new BTreeKey(-1), record));
+		assertFalse(m_tree.retrieveRecord(new BTreeKey(SIZE), record));
 	}
 	
 	@Test
 	public void testLoadAfterInsertReversely() throws IOException {
 		for (int i = 0; i < SIZE; i++) {
 			BTreeRecord record = new BTreeRecord(i, Integer.toString(i));
-			assertTrue(m_tree.retrieveRecord(new Key(i), record));
+			assertTrue(m_tree.retrieveRecord(new BTreeKey(i), record));
 			assertEquals(Integer.toString(i), record.getValue().trim());
 		}
 		BTreeRecord record = new BTreeRecord(-1, Integer.toString(-1));
-		assertFalse(m_tree.retrieveRecord(new Key(-1), record));
-		assertFalse(m_tree.retrieveRecord(new Key(SIZE), record));
+		assertFalse(m_tree.retrieveRecord(new BTreeKey(-1), record));
+		assertFalse(m_tree.retrieveRecord(new BTreeKey(SIZE), record));
 	}
 
 	@Test
 	public void testDeleteReversely() throws IOException {
 		for (int i = SIZE-1; i >= 0; i--) {
-			assertTrue(m_tree.deleteRecord(new Key(i)));
+			assertTrue(m_tree.deleteRecord(new BTreeKey(i)));
 		}
 		for (int i = 0; i < SIZE; i++) {
 			BTreeRecord record = new BTreeRecord(i, Integer.toString(i));
-			assertFalse("Retrieve KEY:"+i, m_tree.retrieveRecord(new Key(i), record));
+			assertFalse("Retrieve KEY:"+i, m_tree.retrieveRecord(new BTreeKey(i), record));
 		}
 	}
 	
@@ -145,12 +145,12 @@ public class BTreeTest {
 			
 			for (Integer i : list) {
 				BTreeRecord record = new BTreeRecord(i, Integer.toString(-2));
-				assertTrue("i: " + i, m_tree.retrieveRecord(new Key(i), record));
+				assertTrue("i: " + i, m_tree.retrieveRecord(new BTreeKey(i), record));
 				assertEquals("i: " + i, Integer.toString(i), record.getValue().trim());
 			}
 			BTreeRecord record = new BTreeRecord(-1, Integer.toString(-1));
-			assertFalse(m_tree.retrieveRecord(new Key(-1), record));
-			assertFalse(m_tree.retrieveRecord(new Key(list.size()), record));
+			assertFalse(m_tree.retrieveRecord(new BTreeKey(-1), record));
+			assertFalse(m_tree.retrieveRecord(new BTreeKey(list.size()), record));
 		}
 	}
 	
@@ -179,12 +179,12 @@ public class BTreeTest {
 					break;
 				case 1:	// delete
 					assertEquals("seed:" + seed + ", iter:"+i + ", key:" + key,
-							contains[key], m_tree.deleteRecord(new Key(key)));
+							contains[key], m_tree.deleteRecord(new BTreeKey(key)));
 					contains[key] = false;
 					
 					break;
 				case 2:	// retrieve 
-					assertEquals(contains[key], m_tree.retrieveRecord(new Key(key), record));
+					assertEquals(contains[key], m_tree.retrieveRecord(new BTreeKey(key), record));
 					if (contains[key]) {
 						assertEquals("seed:" + seed + ", iter:"+i + ", key:" + key, 
 							Integer.toString(key), record.getValue().trim());
@@ -197,7 +197,7 @@ public class BTreeTest {
 		}
 		BTreeRecord record = new BTreeRecord(0, "0");
 		for (int j = 0; j < SIZE; j++) {
-			assertEquals(contains[j], m_tree.retrieveRecord(new Key(j), record));
+			assertEquals(contains[j], m_tree.retrieveRecord(new BTreeKey(j), record));
 			if (contains[j]) {
 				assertEquals(Integer.toString(j), record.getValue().trim());
 			}

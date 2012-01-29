@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import sccu.storage.btree.BTreeHeader.StackItem;
-import sccu.storage.btree.BTreeRecord.Key;
+import sccu.storage.btree.key.BTreeKey;
 
 public class BTreePage {
 
@@ -75,14 +75,14 @@ public class BTreePage {
 			this.data = new int[BufferManager.getInstance().getPageSize()/4];
 			this.setChild(0, bb.getInt());
 			for (int i = 0; i < this.keyCount; i++) {
-				this.setKey(i, new Key(bb.getInt()));
+				this.setKey(i, new BTreeKey(bb.getInt()));
 				this.setChild(i+1, bb.getInt());
 			}
 		}
 	}
 
 	public void writeBTreePage() throws IOException {
-		this.validate();
+		//this.validate();
 		BufferManager.getInstance().writePage(pageNumber, this.toBytes());
 	}
 
@@ -95,7 +95,7 @@ public class BTreePage {
 		bb.putInt(this.keyCount);
 		if (this.isLeaf()) {
 			for (int i = 0; i < this.keyCount; i++) {
-				bb.putInt(this.records.get(i).getKey().getInt());
+				bb.put(this.records.get(i).getKey().toBytes());
 				byte[] value = Arrays.copyOf(this.records.get(i).getValue().getBytes(), BTreeRecord.Value.getSize());
 				bb.put(value);
 			}
@@ -104,7 +104,7 @@ public class BTreePage {
 			// TODO: array를 통째로 복사. serializable 구현
 			bb.putInt(this.getChild(0));
 			for (int i = 0; i < this.keyCount; i++) {
-				bb.putInt(this.getKey(i).getInt());
+				bb.put(this.getKey(i).toBytes());
 				bb.putInt(this.getChild(i+1));
 			}
 		}
@@ -120,7 +120,7 @@ public class BTreePage {
 						" RecordSize: " + this.records.size());
 			}
 			for (int i = 0; i < this.keyCount - 1; i++) {
-				if (this.getRecord(i).getKey().getInt() >= this.getRecord(i+1).getKey().getInt()) {
+				if (!this.getRecord(i).getKey().lessThan(this.getRecord(i+1).getKey())) {
 					throw new IOException("Invalid Page: " + this.getPageNumber() + " Index: " + i);
 				}
 			}
@@ -142,7 +142,7 @@ public class BTreePage {
 		return this.nextPageNumber;
 	}
 	
-	public void addKey(Key key, int rightPageNumber, int index) {
+	public void addKey(BTreeKey key, int rightPageNumber, int index) {
 		for (int i = this.keyCount; i > index; i--) {
 			setKey(i, getKey(i-1));
 			setChild(i+1, getChild(i));
@@ -160,12 +160,12 @@ public class BTreePage {
 		return data[i*2];
 	}
 
-	private void setKey(int i, Key key) {
-		data[i*2+1] = key.getInt();
+	private void setKey(int i, BTreeKey key) {
+		data[i*2+1] = ByteBuffer.wrap(key.toBytes()).getInt();
 	}
 
-	Key getKey(int i) {
-		return new Key(data[i*2+1]);
+	BTreeKey getKey(int i) {
+		return new BTreeKey(data[i*2+1]);
 	}
 
 	public void addRecord(BTreeRecord record, int index) {
@@ -228,14 +228,14 @@ public class BTreePage {
 		}
 	}
 	
-	public Key splitLeaf(BTreeRecord record, BTreePage rightPage, int index) throws IOException {
+	public BTreeKey splitLeaf(BTreeRecord record, BTreePage rightPage, int index) throws IOException {
 		BTreePage tempPage = new BTreePage(-2, true);
 		this.copyNode(tempPage, 0, this.keyCount);
 		tempPage.addRecord(record, index);
 		
 		//int midIndex = tempPage.keyCount/2 - 1 + tempPage.keyCount%2;
 		int midIndex = (tempPage.keyCount-1) / 2;
-		Key midKey = tempPage.getRecord(midIndex).getKey();
+		BTreeKey midKey = tempPage.getRecord(midIndex).getKey();
 		
 		rightPage.nextPageNumber = this.nextPageNumber;
 		this.nextPageNumber = rightPage.pageNumber;
@@ -249,13 +249,13 @@ public class BTreePage {
 		return midKey;
 	}
 
-	public Key splitNode(Key key, int newChild, BTreePage rightPage, int index) throws IOException {
+	public BTreeKey splitNode(BTreeKey key, int newChild, BTreePage rightPage, int index) throws IOException {
 		BTreePage tempPage = new BTreePage(-2, false);
 		this.copyNode(tempPage, 0, this.keyCount);
 		tempPage.addKey(key, newChild, index);
 		
 		int midIndex = tempPage.keyCount / 2;
-		Key midKey = tempPage.getKey(midIndex);
+		BTreeKey midKey = tempPage.getKey(midIndex);
 		
 		tempPage.copyNode(this, 0, midIndex);
 		this.writeBTreePage();

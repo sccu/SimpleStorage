@@ -1,5 +1,7 @@
 package sccu.storage.btree;
 
+import sccu.storage.btree.key.BTreeKey;
+
 
 
 public class BTreeRecord {
@@ -34,7 +36,7 @@ public class BTreeRecord {
 
 	public static class Value {
 		public static int getSize() {
-			return 12;
+			return 8;
 		}
 	}
 
@@ -42,7 +44,7 @@ public class BTreeRecord {
 	}
 
 	public BTreeRecord(int key, String value) {
-		this.key = new Key(key);
+		this.key = new BTreeKey(key);
 		this.value = value;
 	}
 
@@ -50,7 +52,7 @@ public class BTreeRecord {
 		return Key.getSize() + Value.getSize();
 	}
 
-	private Key key;
+	private BTreeKey key;
 	private String value;
 
 	public void copyFrom(BTreeRecord record) {
@@ -58,7 +60,7 @@ public class BTreeRecord {
 		this.value = record.value;
 	}
 
-	public Key getKey() {
+	public BTreeKey getKey() {
 		return key;
 	}
 

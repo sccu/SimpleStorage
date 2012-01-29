@@ -2,16 +2,16 @@ package sccu.storage.btree.key;
 
 import java.nio.ByteBuffer;
 
-public class IntegerKey implements BTreeKey<IntegerKey> {
+public class IntegerType implements BTreeDataType<IntegerType> {
 
 	private final int value;
 
-	public IntegerKey(int val) {
+	public IntegerType(int val) {
 		this.value = val;
 	}
 
 	@Override
-	public int compareTo(IntegerKey other) {
+	public int compareTo(IntegerType other) {
 		return this.value - other.value;
 	}
 

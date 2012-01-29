@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Stack;
 
-import sccu.storage.btree.BTreeRecord.Key;
+import sccu.storage.btree.key.BTreeKey;
 
 public class BTreeHeader {
 
@@ -93,7 +93,7 @@ public class BTreeHeader {
 		int index = 0;
 		int leftPageNumber = 0;
 		BTreePage rightPage = null;
-		Key key = record.getKey();
+		BTreeKey key = record.getKey();
 		
 		boolean finished = false;
 		while (!finished) {
@@ -141,7 +141,7 @@ public class BTreeHeader {
 		return true;
 	}
 	
-	boolean deleteRecord(Key key) throws IOException {
+	boolean deleteRecord(BTreeKey key) throws IOException {
 		BTreePage child = new BTreePage(0, true);
 		BTreePage sibling = new BTreePage(0, true);
 		BTreePage parent = new BTreePage(0, true);
@@ -243,7 +243,7 @@ public class BTreeHeader {
 		return page.isLeaf() ? minRecord : minKey;
 	}
 
-	boolean findRecord(Key key, BTreePage page) throws IOException {
+	boolean findRecord(BTreeKey key, BTreePage page) throws IOException {
 		int currentPageNumber = this.rootPageNumber;
 		this.stack.clear();
 		page.readBTreePage(currentPageNumber);
