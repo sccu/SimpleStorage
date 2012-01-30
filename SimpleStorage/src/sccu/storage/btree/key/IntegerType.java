@@ -22,4 +22,15 @@ public class IntegerType implements BTreeDataType<IntegerType> {
 		return bytes;
 	}
 
+	@Override
+	public boolean equals(Object other) {
+		if (this == other) {
+			return true;
+		}
+		if (other instanceof IntegerType) {
+			return this.compareTo((IntegerType)other) == 0;
+		}
+		return false;
+	}
+
 }

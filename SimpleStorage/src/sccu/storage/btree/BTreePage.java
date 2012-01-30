@@ -28,7 +28,7 @@ public class BTreePage {
 		
 		this.keyCount = 0;
 		if (!leaf) {
-			this.data = new int[BufferManager.getInstance().getPageSize()/4];
+			this.data = new int[BufferManager.getInstance().getPageSize()/4-3];
 		}
 	}
 
@@ -43,7 +43,7 @@ public class BTreePage {
 		
 		this.keyCount = 0;
 		if (!leaf) {
-			this.data = new int[BufferManager.getInstance().getPageSize()/4];
+			this.data = new int[BufferManager.getInstance().getPageSize()/4-3];
 		}
 	}
 
@@ -72,7 +72,7 @@ public class BTreePage {
 		}
 		else {
 			// TODO: array를 통째로 복사. serializable 구현
-			this.data = new int[BufferManager.getInstance().getPageSize()/4];
+			this.data = new int[BufferManager.getInstance().getPageSize()/4-3];
 			this.setChild(0, bb.getInt());
 			for (int i = 0; i < this.keyCount; i++) {
 				this.setKey(i, new BTreeKey(bb.getInt()));

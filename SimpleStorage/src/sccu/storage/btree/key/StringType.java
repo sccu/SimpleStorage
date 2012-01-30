@@ -27,4 +27,15 @@ public class StringType implements BTreeDataType<StringType> {
 		return Arrays.copyOf(this.value.getBytes(), limit);
 	}
 
+	@Override
+	public boolean equals(Object other) {
+		if (this == other) {
+			return true;
+		}
+		if (other instanceof StringType) {
+			return this.compareTo((StringType)other) == 0;
+		}
+		return false;
+	}
+
 }

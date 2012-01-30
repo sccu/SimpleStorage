@@ -38,8 +38,15 @@ public class BTreeKey {
 		return this.columns.length - other.columns.length;
 	}
 	
-	public boolean equals(BTreeKey other) {
-		return this.compareTo(other) == 0;
+	@Override
+	public boolean equals(Object other) {
+		if (this == other) {
+			return true;
+		}
+		if (other instanceof BTreeKey) {
+			return this.compareTo((BTreeKey)other) == 0;
+		}
+		return false;
 	}
 
 	public byte[] toBytes() {
