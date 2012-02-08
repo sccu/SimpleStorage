@@ -1,15 +1,16 @@
-package sccu.storage.btree.key;
+package name.sccu.storage.btree.key;
 
 import static org.junit.Assert.*;
+
+import name.sccu.storage.btree.key.BTreeDataType;
+import name.sccu.storage.btree.key.BTreeKey;
+import name.sccu.storage.btree.key.IntegerType;
+import name.sccu.storage.btree.key.StringType;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import sccu.storage.btree.key.BTreeDataType;
-import sccu.storage.btree.key.IntegerType;
-import sccu.storage.btree.key.BTreeKey;
-import sccu.storage.btree.key.StringType;
 
 public class BTreeKeyTest {
 

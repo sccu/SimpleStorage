@@ -1,4 +1,4 @@
-package sccu.storage.btree;
+package name.sccu.storage.btree;
 
 import java.io.File;
 import java.io.IOException;

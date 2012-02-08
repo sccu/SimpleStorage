@@ -1,4 +1,4 @@
-package sccu.storage.btree.key;
+package name.sccu.storage.btree.key;
 
 import java.nio.ByteBuffer;
 

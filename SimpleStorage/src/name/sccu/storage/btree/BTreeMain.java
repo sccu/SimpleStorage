@@ -1,4 +1,4 @@
-package sccu.storage.btree;
+package name.sccu.storage.btree;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -6,7 +6,8 @@ import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.StringTokenizer;
 
-import sccu.storage.btree.key.BTreeKey;
+import name.sccu.storage.btree.key.BTreeKey;
+
 
 public class BTreeMain {
 

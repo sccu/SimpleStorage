@@ -1,7 +1,7 @@
 /**
  * 
  */
-package sccu.storage.btree;
+package name.sccu.storage.btree;
 
 import org.junit.After;
 import org.junit.Before;

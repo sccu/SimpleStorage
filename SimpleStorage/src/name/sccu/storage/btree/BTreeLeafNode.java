@@ -1,4 +1,4 @@
-package sccu.storage.btree;
+package name.sccu.storage.btree;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -6,8 +6,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import sccu.storage.btree.BTreeHeader.StackItem;
-import sccu.storage.btree.key.BTreeKey;
+import name.sccu.storage.btree.BTreeHeader.StackItem;
+import name.sccu.storage.btree.key.BTreeKey;
+
 
 public class BTreeLeafNode implements BTreePage {
 

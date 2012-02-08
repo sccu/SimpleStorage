@@ -1,9 +1,10 @@
-package sccu.storage.btree;
+package name.sccu.storage.btree;
 
 import java.io.IOException;
 
-import sccu.storage.btree.BTreePage.BTreePageHolder;
-import sccu.storage.btree.key.BTreeKey;
+import name.sccu.storage.btree.BTreePage.BTreePageHolder;
+import name.sccu.storage.btree.key.BTreeKey;
+
 
 public class BTree {
 	private BTreeHeader header = new BTreeHeader();
