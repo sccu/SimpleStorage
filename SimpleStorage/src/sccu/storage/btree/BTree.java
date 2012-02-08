@@ -2,6 +2,7 @@ package sccu.storage.btree;
 
 import java.io.IOException;
 
+import sccu.storage.btree.BTreePage.BTreePageHolder;
 import sccu.storage.btree.key.BTreeKey;
 
 public class BTree {
@@ -11,7 +12,7 @@ public class BTree {
 			throws IOException {
 		BufferManager.getInstance().initBufferManager(filename, pageSize);
 		if (newStart) {
-			BTreePage page = new BTreePage(true);
+			BTreePage page = new BTreeLeafNode();
 			page.writeBTreePage();
 			header.init(page.getPageNumber(), page.getPageNumber());
 			BufferManager.getInstance().resetDebugData();
@@ -35,11 +36,11 @@ public class BTree {
 
 	public boolean retrieveRecord(BTreeKey key, BTreeRecord record)
 			throws IOException {
-		BTreePage page = new BTreePage();
-		boolean found = header.findRecord(key, page);
+		BTreePageHolder pageHolder = new BTreePageHolder();
+		boolean found = header.findRecord(key, pageHolder);
 		if (found) {
-			int i = header.peek().index;
-			record.copyFrom(page.getRecord(i));
+			int i = header.getStack().peek().index;
+			record.copyFrom(pageHolder.get().getRecord(i));
 		}
 		return found;
 	}

@@ -1,4 +1,4 @@
-package test.sccu.storage.btree;
+package sccu.storage.btree;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

@@ -5,6 +5,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * BTree의 Key를 표현하는 불변 객체.
+ * 
+ * @author jujang@sk.com
+ */
 public class BTreeKey {
 
 	private final BTreeDataType<?>[] columns;

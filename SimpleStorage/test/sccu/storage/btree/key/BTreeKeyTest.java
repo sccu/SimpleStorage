@@ -1,4 +1,4 @@
-package test.sccu.storage.btree.key;
+package sccu.storage.btree.key;
 
 import static org.junit.Assert.*;
 

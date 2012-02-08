@@ -115,5 +115,10 @@ public class BufferManager {
 	public void resetDebugData() {
 		used = new boolean[MAX_PAGE_SIZE];
 	}
+
+	static BTreePage getBTreePage(int pageNumber) throws IOException {
+		byte[] bytes = BufferManager.getInstance().readPage(pageNumber);
+		return BTreePage.Factory.create(bytes);
+	}
 	
 }
