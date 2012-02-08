@@ -35,8 +35,6 @@ public interface BTreePage {
 		}
 	}
 
-	void writeBTreePage() throws IOException;
-
 	int getPageNumber();
 
 	void addKey(BTreeKey key, int rightPageNumber, int index);
@@ -74,4 +72,6 @@ public interface BTreePage {
 	void redistribute(BTreePage sibling, BTreePage parent, int index) throws IOException;
 
 	void setKey(int index, BTreeKey key);
+
+	byte[] toBytes();
 }

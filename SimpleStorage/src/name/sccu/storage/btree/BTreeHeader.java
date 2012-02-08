@@ -119,7 +119,7 @@ public class BTreeHeader {
 			}
 		}
 		
-		page.writeBTreePage();
+		BufferManager.getInstance().writePage(page);
 		
 		return true;
 	}
@@ -176,7 +176,8 @@ public class BTreeHeader {
 			
 		}
 		
-		child.writeBTreePage();
+		BufferManager.getInstance().writePage(child);
+		
 		return true;
 	}
 	

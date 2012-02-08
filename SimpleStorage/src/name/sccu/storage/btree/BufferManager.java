@@ -40,6 +40,11 @@ public class BufferManager {
 		file.seek(pageNumber * pageSize);
 		file.write(bytes);
 	}
+	
+	public void writePage(BTreePage page) throws IOException {
+		file.seek(page.getPageNumber() * pageSize);
+		file.write(page.toBytes());
+	}
 
 	public int getPageSize() {
 		return pageSize;

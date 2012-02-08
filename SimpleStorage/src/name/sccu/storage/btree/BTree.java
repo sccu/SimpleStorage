@@ -14,7 +14,7 @@ public class BTree {
 		BufferManager.getInstance().initBufferManager(filename, pageSize);
 		if (newStart) {
 			BTreePage page = new BTreeLeafNode();
-			page.writeBTreePage();
+			BufferManager.getInstance().writePage(page);
 			header.init(page.getPageNumber(), page.getPageNumber());
 			BufferManager.getInstance().resetDebugData();
 		} else {

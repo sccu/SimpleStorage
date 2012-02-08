@@ -51,7 +51,7 @@ public class BTreeLeafNode implements BTreePage {
 		BufferManager.getInstance().writePage(pageNumber, this.toBytes());
 	}
 
-	private byte[] toBytes() {
+	public byte[] toBytes() {
 		byte[] buffer = new byte[BufferManager.getInstance().getPageSize()];
 		ByteBuffer bb = ByteBuffer.wrap(buffer);
 		
@@ -177,7 +177,7 @@ public class BTreeLeafNode implements BTreePage {
 		this.writeBTreePage();
 		
 		tempPage.copyNode(rightPage, midIndex+1, tempPage.keyCount-midIndex-1);
-		rightPage.writeBTreePage();
+		BufferManager.getInstance().writePage(rightPage);
 		
 		return midKey;
 	}
