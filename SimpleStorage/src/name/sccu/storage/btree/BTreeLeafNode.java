@@ -10,20 +10,20 @@ import name.sccu.storage.btree.BTreeHeader.StackItem;
 import name.sccu.storage.btree.key.BTreeKey;
 
 
-public class BTreeLeafNode implements BTreePage {
+class BTreeLeafNode implements BTreePage {
 
 	private int pageNumber;
 	private int nextPageNumber;
 	private int keyCount;
 	private ArrayList<BTreeRecord> records = new ArrayList<BTreeRecord>();
 
-	public BTreeLeafNode() throws IOException {
-		this.pageNumber = newPageNumber();
+	BTreeLeafNode() throws IOException {
+		this.pageNumber = BufferManager.getInstance().newPageNumber();
 		this.nextPageNumber = 0;
 		this.keyCount = 0;
 	}
 
-	public BTreeLeafNode(int pageNumber) {
+	BTreeLeafNode(int pageNumber) {
 		this.pageNumber = pageNumber;
 		this.nextPageNumber = 0;
 		this.keyCount = 0;
@@ -42,16 +42,8 @@ public class BTreeLeafNode implements BTreePage {
 		}
 	}
 
-	private static int newPageNumber() throws IOException {
-		return BufferManager.getInstance().newPageNumber();
-	}
-	
-	public void writeBTreePage() throws IOException {
-		//this.validate();
-		BufferManager.getInstance().writePage(pageNumber, this.toBytes());
-	}
-
 	public byte[] toBytes() {
+		//this.validate();
 		byte[] buffer = new byte[BufferManager.getInstance().getPageSize()];
 		ByteBuffer bb = ByteBuffer.wrap(buffer);
 		
@@ -174,7 +166,7 @@ public class BTreeLeafNode implements BTreePage {
 		this.nextPageNumber = right.pageNumber;
 		
 		tempPage.copyNode(this, 0, midIndex+1);
-		this.writeBTreePage();
+		BufferManager.getInstance().writePage(this);
 		
 		tempPage.copyNode(rightPage, midIndex+1, tempPage.keyCount-midIndex-1);
 		BufferManager.getInstance().writePage(rightPage);
@@ -190,20 +182,16 @@ public class BTreeLeafNode implements BTreePage {
 		return this.keyCount;
 	}
 
-	public void freeBTreePage() throws IOException {
-		BufferManager.getInstance().freePage(this.getPageNumber());
-	}
-
 	public void merge(BTreePage siblingPage, BTreePage parent,
 			StackItem item) throws IOException {
 		BTreeLeafNode child = this;
 		if (item.index == parent.getKeyCount()) {
 			siblingPage = child;
 			item.index--;
-			child = (BTreeLeafNode) BufferManager.getBTreePage(parent.getChild(item.index));
+			child = (BTreeLeafNode) BufferManager.getInstance().getBTreePage(parent.getChild(item.index));
 		}
 		else {
-			siblingPage = BufferManager.getBTreePage(parent.getChild(item.index+1));
+			siblingPage = BufferManager.getInstance().getBTreePage(parent.getChild(item.index+1));
 		}
 		
 		BTreeLeafNode sibling = (BTreeLeafNode)siblingPage;
@@ -211,8 +199,8 @@ public class BTreeLeafNode implements BTreePage {
 			child.appendRecord(sibling.getRecord(i));
 		}
 		child.nextPageNumber = sibling.nextPageNumber;
-		child.writeBTreePage();
-		siblingPage.freeBTreePage();
+		BufferManager.getInstance().writePage(child);
+		BufferManager.getInstance().freePage(sibling);
 	}
 
 	private void appendRecord(BTreeRecord record) {
@@ -238,8 +226,8 @@ public class BTreeLeafNode implements BTreePage {
 			parent.setKey(index, sibling.getRecord(sibling.getKeyCount()-1).getKey());
 		}
 		
-		child.writeBTreePage();
-		sibling.writeBTreePage();
+		BufferManager.getInstance().writePage(child);
+		BufferManager.getInstance().writePage(sibling);
 	}
 
 	private void insertRecords(int index, List<BTreeRecord> records) {

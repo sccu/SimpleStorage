@@ -6,7 +6,7 @@ import java.nio.ByteBuffer;
 import name.sccu.storage.btree.BTreeHeader.StackItem;
 import name.sccu.storage.btree.key.BTreeKey;
 
-public class BTreeInternalNode implements BTreePage {
+class BTreeInternalNode implements BTreePage {
 
 	private int pageNumber;
 	private int nextPageNumber;
@@ -165,9 +165,9 @@ public class BTreeInternalNode implements BTreePage {
 		if (item.index == parent.getKeyCount()) {
 			sibling = child;
 			item.index--;
-			child = (BTreeInternalNode) BufferManager.getBTreePage(parent .getChild(item.index));
+			child = (BTreeInternalNode) BufferManager.getInstance().getBTreePage(parent .getChild(item.index));
 		} else {
-			sibling = BufferManager.getBTreePage(parent
+			sibling = BufferManager.getInstance().getBTreePage(parent
 					.getChild(item.index + 1));
 		}
 
@@ -182,15 +182,11 @@ public class BTreeInternalNode implements BTreePage {
 		}
 
 		BufferManager.getInstance().writePage(child);
-		sibling.freeBTreePage();
+		BufferManager.getInstance().freePage(sibling);
 	}
 
 	public int getKeyCount() {
 		return this.keyCount;
-	}
-
-	public void freeBTreeInternalNode() throws IOException {
-		BufferManager.getInstance().freePage(this.getPageNumber());
 	}
 
 	public void redistribute(BTreePage siblingPage, BTreePage parent, int index)
@@ -237,11 +233,6 @@ public class BTreeInternalNode implements BTreePage {
 
 		BufferManager.getInstance().writePage(child);
 		BufferManager.getInstance().writePage(sibling);
-	}
-
-	@Override
-	public void freeBTreePage() throws IOException {
-		BufferManager.getInstance().freePage(this.getPageNumber());
 	}
 
 }

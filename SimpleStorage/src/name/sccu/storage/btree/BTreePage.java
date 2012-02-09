@@ -67,8 +67,6 @@ public interface BTreePage {
 
 	int getKeyCount();
 
-	void freeBTreePage() throws IOException;
-
 	void redistribute(BTreePage sibling, BTreePage parent, int index) throws IOException;
 
 	void setKey(int index, BTreeKey key);

@@ -31,7 +31,7 @@ public class BTreeHeader {
 	private Stack<StackItem> stack;
 	private static int minRecord;
 
-	public void init(int rootPageNumber, int firstSequence) {
+	void init(int rootPageNumber, int firstSequence) {
 		this.rootPageNumber = rootPageNumber;
 		this.firstSequencePage = firstSequence;
 		order = (BufferManager.getInstance().getPageSize() - 4 * 4) / (4 * 2) + 1;
@@ -41,13 +41,13 @@ public class BTreeHeader {
 		this.stack = new Stack<StackItem>();
 	}
 
-	public void loadBTreeHeaderPage() throws IOException {
+	void loadBTreeHeaderPage() throws IOException {
 		byte[] buffer = BufferManager.getInstance().loadHeaderPage();
 		ByteBuffer bb = ByteBuffer.wrap(buffer);
 		this.init(bb.getInt(ROOT_PAGE_POSITION), bb.getInt(FIRST_SEQ_POSITION));
 	}
 
-	public void saveBTreeHeaderPage() throws IOException {
+	void saveBTreeHeaderPage() throws IOException {
 		byte[] buffer = new byte[BufferManager.getInstance().getPageSize()];
 		ByteBuffer bb = ByteBuffer.wrap(buffer);
 		bb.putInt(BufferManager.getInstance().getPageSize());
@@ -67,7 +67,7 @@ public class BTreeHeader {
 		return order;
 	}
 
-	public boolean insertRecord(BTreeRecord record) throws IOException {
+	boolean insertRecord(BTreeRecord record) throws IOException {
 		BTreePageHolder pageHolder = new BTreePageHolder();
 		if (findRecord(record.getKey(), pageHolder)) {
 			return false;
@@ -93,7 +93,7 @@ public class BTreeHeader {
 				BTreeHeader.StackItem item = stack.pop();
 				index = item.index;
 				if (rightPage != null && rightPage.getPageNumber() != HEADER_PAGE_NUMBER) {
-					page = BufferManager.getBTreePage(item.pageNumber);
+					page = BufferManager.getInstance().getBTreePage(item.pageNumber);
 				}
 			}
 			
@@ -149,14 +149,14 @@ public class BTreeHeader {
 			if (item.pageNumber == this.rootPageNumber) {
 				if (child.getKeyCount() == 0 && !child.isLeaf()) {
 					this.rootPageNumber = child.getChild(0);
-					child.freeBTreePage();
+					BufferManager.getInstance().freePage(child);
 					return true;
 				}
 				finished = true;
 			}
 			else if (child.getKeyCount() < BTreeHeader.getMin(child)) {
 				item = this.stack.peek();
-				parent = BufferManager.getBTreePage(item.pageNumber);
+				parent = BufferManager.getInstance().getBTreePage(item.pageNumber);
 				int i = this.selectSibling(siblingHolder, parent, item);
 				if (i == -1) {
 					// merge
@@ -186,24 +186,24 @@ public class BTreeHeader {
 		int i = -1;
 		BTreePage sibling;
 		if (item.index == 0) {
-			sibling = BufferManager.getBTreePage(parent.getChild(1));
+			sibling = BufferManager.getInstance().getBTreePage(parent.getChild(1));
 			if (sibling.getKeyCount() > BTreeHeader.getMin(sibling)) {
 				i = item.index;
 			}
 		}
 		else if (item.index == parent.getKeyCount()) {
-			sibling = BufferManager.getBTreePage(parent.getChild(item.index-1));
+			sibling = BufferManager.getInstance().getBTreePage(parent.getChild(item.index-1));
 			if (sibling.getKeyCount() > BTreeHeader.getMin(sibling)) {
 				i = item.index - 1;
 			}
 		}
 		else {
-			sibling = BufferManager.getBTreePage(parent.getChild(item.index+1));
+			sibling = BufferManager.getInstance().getBTreePage(parent.getChild(item.index+1));
 			if (sibling.getKeyCount() > BTreeHeader.getMin(sibling)) {
 				i = item.index;
 			}
 			else {
-				sibling = BufferManager.getBTreePage(parent.getChild(item.index-1));
+				sibling = BufferManager.getInstance().getBTreePage(parent.getChild(item.index-1));
 				if (sibling.getKeyCount() > BTreeHeader.getMin(sibling)) {
 					i = item.index - 1;
 				}
@@ -222,7 +222,7 @@ public class BTreeHeader {
 	boolean findRecord(BTreeKey key, BTreePageHolder pageHolder) throws IOException {
 		int currentPageNumber = this.rootPageNumber;
 		this.stack.clear();
-		BTreePage page = BufferManager.getBTreePage(currentPageNumber);
+		BTreePage page = BufferManager.getInstance().getBTreePage(currentPageNumber);
 		int i;
 		while (!page.isLeaf()) {
 			for (i = 0; i < page.getKeyCount() && page.getKey(i).lessThan(key); i++) {
@@ -230,7 +230,7 @@ public class BTreeHeader {
 			}
 			this.stack.push(new StackItem(page.getPageNumber(), i));
 			currentPageNumber = page.getChild(i);
-			page = BufferManager.getBTreePage(currentPageNumber);
+			page = BufferManager.getInstance().getBTreePage(currentPageNumber);
 		}
 		
 		for (i = 0; i < page.getKeyCount() && page.getRecord(i).getKey().lessThan(key); i++) {

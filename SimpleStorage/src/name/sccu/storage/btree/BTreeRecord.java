@@ -4,7 +4,7 @@ import name.sccu.storage.btree.key.BTreeKey;
 
 
 
-public class BTreeRecord {
+class BTreeRecord {
 	
 	public static class Key {
 		private int key;

@@ -5,7 +5,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 
-public class BufferManager {
+class BufferManager {
 	private static final int MAX_PAGE_SIZE = 10000;
 	private final static BufferManager m_bufferManager = new BufferManager();
 	private RandomAccessFile file = null;
@@ -15,7 +15,7 @@ public class BufferManager {
 	
 	private boolean[] used = new boolean[MAX_PAGE_SIZE];
 	
-	public void initBufferManager(String filename, int pageSize) throws IOException {
+	void initBufferManager(String filename, int pageSize) throws IOException {
 		File file = new File(filename);
 		if (!file.exists()) {
 			file.createNewFile();
@@ -28,48 +28,47 @@ public class BufferManager {
 		this.lastFreePageNumber = -1;
 	}
 	
-	public void close() throws IOException {
+	void close() throws IOException {
 		this.file.close();
 	}
 	
-	public static BufferManager getInstance() {
+	static BufferManager getInstance() {
 		return m_bufferManager;
 	}
 
-	public void writePage(int pageNumber, byte[] bytes) throws IOException {
+	private void writePage(int pageNumber, byte[] bytes) throws IOException {
 		file.seek(pageNumber * pageSize);
 		file.write(bytes);
 	}
 	
-	public void writePage(BTreePage page) throws IOException {
-		file.seek(page.getPageNumber() * pageSize);
-		file.write(page.toBytes());
+	void writePage(BTreePage page) throws IOException {
+		writePage(page.getPageNumber(), page.toBytes());
 	}
 
-	public int getPageSize() {
+	int getPageSize() {
 		return pageSize;
 	}
 
-	public int getMaxPageNumber() {
+	int getMaxPageNumber() {
 		return maxPageNumber;
 	}
 
-	public int getLastFreePageNumber() {
+	int getLastFreePageNumber() {
 		return lastFreePageNumber;
 	}
 
-	public byte[] readPage(int pageNumber) throws IOException {
+	private byte[] readPage(int pageNumber) throws IOException {
 		byte[] buffer = new byte[this.pageSize];
 		file.seek(pageNumber * this.pageSize);
 		file.read(buffer);
 		return buffer;
 	}
 
-	public void saveHeaderPage(byte[] bytes) throws IOException {
+	void saveHeaderPage(byte[] bytes) throws IOException {
 		writePage(0, bytes);
 	}
 
-	public int newPageNumber() throws IOException {
+	int newPageNumber() throws IOException {
 		int freePageNumber;
 		if (this.lastFreePageNumber == -1) {
 			this.maxPageNumber++;
@@ -84,7 +83,6 @@ public class BufferManager {
 				this.lastFreePageNumber = -1;
 			}
 			else {
-				//this.lastFreePageNumber = nextPageNumber + 1;
 				this.lastFreePageNumber = nextPageNumber;
 			}
 		}
@@ -96,18 +94,7 @@ public class BufferManager {
 		return freePageNumber;
 	}
 	
-	public void freePage(int pageNumber) throws IOException {
-		if (!used[pageNumber]) {
-			throw new IOException(pageNumber + " already used.");
-		}
-		used[pageNumber] = false;
-		
-		this.file.seek(pageNumber * this.pageSize + 4);
-		this.file.writeInt(this.lastFreePageNumber);
-		this.lastFreePageNumber = pageNumber;
-	}
-
-	public byte[] loadHeaderPage() throws IOException {
+	byte[] loadHeaderPage() throws IOException {
 		byte[] buffer = this.readPage(0);
 		ByteBuffer bb = ByteBuffer.wrap(buffer);
 		this.pageSize = bb.getInt();
@@ -117,13 +104,28 @@ public class BufferManager {
 		return buffer;
 	}
 
-	public void resetDebugData() {
+	void resetDebugData() {
 		used = new boolean[MAX_PAGE_SIZE];
 	}
 
-	static BTreePage getBTreePage(int pageNumber) throws IOException {
+	BTreePage getBTreePage(int pageNumber) throws IOException {
 		byte[] bytes = BufferManager.getInstance().readPage(pageNumber);
 		return BTreePage.Factory.create(bytes);
+	}
+
+	/**
+	 * @param sibling
+	 * @throws IOException 
+	 */
+	void freePage(BTreePage page) throws IOException {
+		if (!used[page.getPageNumber()]) {
+			throw new IOException(page.getPageNumber() + " already used.");
+		}
+		used[page.getPageNumber()] = false;
+		
+		this.file.seek(page.getPageNumber() * this.pageSize + 4);
+		this.file.writeInt(this.lastFreePageNumber);
+		this.lastFreePageNumber = page.getPageNumber();
 	}
 	
 }

@@ -5,9 +5,8 @@ import java.io.IOException;
 import name.sccu.storage.btree.BTreePage.BTreePageHolder;
 import name.sccu.storage.btree.key.BTreeKey;
 
-
 public class BTree {
-	private BTreeHeader header = new BTreeHeader();
+	private final BTreeHeader header = new BTreeHeader();
 
 	public void initBTree(String filename, int pageSize, boolean newStart)
 			throws IOException {
